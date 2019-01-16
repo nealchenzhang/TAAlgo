@@ -60,3 +60,16 @@ def RW(ds_ys, w, pflag=0):
         
     return ds_peaks, ds_bottoms
 
+def PIPs(ds_ys, n_PIPs, type_dist, pflag=0):
+    """
+
+    :param ds_ys: column vector of price series
+    :param n_PIPs: number of requested PIPs
+    :param type_dist: 1 = Euclidean Distance ED,
+                      2 = Perpendicular Distance PD,
+                      3 = Vertical Distance VD
+    :param pflag: 1 = plot graph
+    :return ds_PIPs: column vector with time index for PIPs
+    """
+
+    return ds_PIPs
