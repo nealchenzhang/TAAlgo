@@ -64,19 +64,19 @@ def RW(ds_ys, w, pflag=0):
     return ds_peaks, ds_bottoms
 
 def EDist(ys, xs, Adjx, Adjy):
-    ED = ((Adjx.iloc[:, 2] - xs)**2 + (Adjy.iloc[:, 2] - ys)**2)**(1/2)+\
-    ((Adjx.iloc[:, 1] - xs)**2 + (Adjy.iloc[:, 1] - ys)**2)**(1/2)
+    ED = ((Adjx.iloc[:, 1] - xs)**2 + (Adjy.iloc[:, 1] - ys)**2)**(1/2)+\
+    ((Adjx.iloc[:, 0] - xs)**2 + (Adjy.iloc[:, 0] - ys)**2)**(1/2)
     return ED
 
 def PDist(ys, xs, Adjx, Adjy):
-    slopes = (Adjy.iloc[:, 2] - Adjy.iloc[:, 1]) / (Adjx.iloc[:, 2] - Adjx.iloc[:, 1])
-    constants = Adjy.iloc[:, 2] - slopes * Adjx.iloc[:, 2]
+    slopes = (Adjy.iloc[:, 1] - Adjy.iloc[:, 0]) / (Adjx.iloc[:, 1] - Adjx.iloc[:, 0])
+    constants = Adjy.iloc[:, 1] - slopes * Adjx.iloc[:, 1]
     PD = np.abs(slopes * xs - ys + constants) / ((slopes**2 + 1)**(1/2))
     return PD
 
 def VDist(ys, xs, Adjx, Adjy):
-    slopes = (Adjy.iloc[:, 2] - Adjy.iloc[:, 1]) / (Adjx.iloc[:, 2] - Adjx.iloc[:, 1])
-    constants = Adjy.iloc[:, 2] - slopes * Adjx.iloc[:, 2]
+    slopes = (Adjy.iloc[:, 1] - Adjy.iloc[:, 0]) / (Adjx.iloc[:, 1] - Adjx.iloc[:, 0])
+    constants = Adjy.iloc[:, 1] - slopes * Adjx.iloc[:, 1]
     Yshat = slopes * xs + constants
     VD = np.abs(Yshat - ys)
     return VD
@@ -95,14 +95,34 @@ def PIPs(ds_ys, n_PIPs, type_dist, pflag=0):
                                  indicating coordinates of PIPs
     """
     l = len(ds_ys)
-    xs = pd.Series()
-    
-    df_PIP_points = pd.DataFrame(columns=[])
-    df_Adjacents = pd.DataFrame(columns=['x', 'y'])
+    xs = pd.Series(np.arange(0, l))
+
+    ds_PIP_points = pd.Series(np.arange(0, l)) * 0
+    ds_PIP_points.iloc[[0, l-1]] = 1
+
+    df_Adjacents = pd.DataFrame(np.zeros((l, 2)))
+    for i in df_Adjacents.columns.tolist():
+        df_Adjacents.iloc[:, i] = df_Adjacents.iloc[:, i].apply(np.int)
     currentstate = 2 # initial PIPs: the first and the last observation
     
     while currentstate <= n_PIPs:
-        Existed_PIPs = 
+        Existed_PIPs = (ds_PIP_points.where(ds_PIP_points==1).dropna()).apply(np.int)
+        currentstate = len(Existed_PIPs)
+        locator = pd.DataFrame(np.ones((l, currentstate))* np.nan)
+        for j in range(0, currentstate):
+            # print(j)
+            locator.iloc[:, j] = np.abs(xs - Existed_PIPs.index.tolist()[j])
+        b1 = (pd.DataFrame(np.zeros((1,l)).reshape(1,l))).apply(np.int)
+        b2 = b1.copy()
+
+        for i in range(0, l):
+            print(i)
+            b1.iloc[i] = np.int(np.min(locator.iloc[i, :]))
+            locator.iloc[i, b1.iloc[i]] = np.nan
+            b2.iloc[i] = np.int(np.min(locator.iloc[i, :]))
+            df_Adjacents.iloc[i, 0] = Existed_PIPs.iloc[b1.iloc[i]]
+            df_Adjacents.iloc[i, 1] = Existed_PIPs.iloc[b2.iloc[i]]
+
     
     
     
