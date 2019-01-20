@@ -19,18 +19,19 @@ sns.set_style('white')
 
 df_data = pd.read_csv('my_data.csv')
 # 注意 这里datetime 是 str 不是datetime64
-#df_data.datetime = df_data.datetime.apply(pd.to_datetime)
+# df_data.datetime = df_data.datetime.apply(pd.to_datetime)
 df_data.set_index('datetime', inplace=True)
 df_data.columns = ['Open', 'High', 'Low', 'Close', 'Volume']
 
 ds_ys = df_data.Close[:120]
 # 需要对数据源进行处理 行情中断 10：15-10：29 以及不连续的处理
 
+
 def RW(ds_ys, w, pflag=0):
     """
     ds_ys: column vector of price series
     w: width of the rolling window
-    pflag: plot a graph equals 1
+    pflag: plot a graph if 1
     
     returns: 
         Peaks: data Series with datetime index and price
@@ -42,19 +43,18 @@ def RW(ds_ys, w, pflag=0):
     ls_ix_peaks = []
     ls_ix_bottoms = []
     for i in range(w+1, l-w+1):
-        print(i)
+        # print(i)
         if (ds_ys.iloc[i-1] > np.max(ds_ys.iloc[i-w-1: i-1])) and \
             (ds_ys.iloc[i-1] > np.max(ds_ys.iloc[i: i+w])):
-#                print(i)
                 ls_ix_peaks.append(ls_ix[i-1])
         if (ds_ys.iloc[i-1] < np.min(ds_ys.iloc[i-w-1: i-1])) and \
             (ds_ys.iloc[i-1] < np.min(ds_ys.iloc[i: i+w])):
-#                print(i)
                 ls_ix_bottoms.append(ls_ix[i-1])
     ds_peaks = pd.Series(index=ls_ix_peaks, data=ds_ys.loc[ls_ix_peaks])
     ds_bottoms = pd.Series(index=ls_ix_bottoms, data=ds_ys.loc[ls_ix_bottoms])
             
     if pflag == 1:
+        # TODO: xaxis optimization for display
         fig, ax = plt.subplots(1, 1, figsize=(10, 8))
         ax.plot(ds_ys)
         ax.scatter(x=ds_peaks.index, y=ds_peaks, marker='o', color='r', alpha=0.5)
@@ -65,10 +65,12 @@ def RW(ds_ys, w, pflag=0):
         
     return ds_peaks, ds_bottoms
 
+
 def EDist(ys, xs, Adjx, Adjy):
     ED = ((Adjx.iloc[:, 1].values - xs.values)**2 + (Adjy.iloc[:, 1].values - ys.values)**2)**(1/2)+\
     ((Adjx.iloc[:, 0].values - xs.values)**2 + (Adjy.iloc[:, 0].values - ys.values)**2)**(1/2)
     return ED
+
 
 def PDist(ys, xs, Adjx, Adjy):
     slopes = (Adjy.iloc[:, 1].values - Adjy.iloc[:, 0].values) / (Adjx.iloc[:, 1].values - Adjx.iloc[:, 0].values)
@@ -76,12 +78,14 @@ def PDist(ys, xs, Adjx, Adjy):
     PD = np.abs(slopes * xs.values - ys.values + constants) / ((slopes**2 + 1)**(1/2))
     return PD
 
+
 def VDist(ys, xs, Adjx, Adjy):
     slopes = (Adjy.iloc[:, 1].values - Adjy.iloc[:, 0].values) / (Adjx.iloc[:, 1].values - Adjx.iloc[:, 0].values)
     constants = Adjy.iloc[:, 1].values - slopes * Adjx.iloc[:, 1].values
     Yshat = slopes * xs.values + constants
     VD = np.abs(Yshat.values - ys.values)
     return VD
+
 
 def PIPs(ds_ys, n_PIPs, type_dist, pflag=0):
     """
@@ -112,7 +116,6 @@ def PIPs(ds_ys, n_PIPs, type_dist, pflag=0):
         currentstate = len(Existed_PIPs)
         locator = pd.DataFrame(np.ones((l, currentstate))* np.NaN)
         for j in range(0, currentstate):
-#             print(j)
             locator.iloc[:, j] = np.abs(xs - Existed_PIPs[j])
         b1 = [0]*l
         b2 = b1.copy()
@@ -156,6 +159,7 @@ def PIPs(ds_ys, n_PIPs, type_dist, pflag=0):
 #        plt.tight_layout()
         plt.show()
     return PIPxy
+
 
 if __name__ == '__main__':
     df_data = pd.read_csv('my_data.csv')
