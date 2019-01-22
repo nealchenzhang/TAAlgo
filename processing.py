@@ -23,13 +23,13 @@ df_data = pd.read_csv('my_data.csv')
 df_data.set_index('datetime', inplace=True)
 df_data.columns = ['Open', 'High', 'Low', 'Close', 'Volume']
 
-ds_ys = df_data.Close[:120]
+ys = df_data.Close[:500]
 # 需要对数据源进行处理 行情中断 10：15-10：29 以及不连续的处理
 
 
-def RW(ds_ys, w, pflag=0):
+def RW(ys, w, pflag=0):
     """
-    ds_ys: column vector of price series
+    ys: column vector of price series
     w: width of the rolling window
     pflag: plot a graph if 1
     
@@ -38,30 +38,42 @@ def RW(ds_ys, w, pflag=0):
         Bottoms: data Series with datetime index and price
     """
     # TODO: if l < w how to correct and in real trading enviromnent how to detect
-    l = len(ds_ys)
-    ls_ix = ds_ys.index.tolist()
+    l = len(ys)
+    ls_ix = ys.index.tolist()
     ls_ix_peaks = []
     ls_ix_bottoms = []
     for i in range(w+1, l-w+1):
-        # print(i)
-        if (ds_ys.iloc[i-1] > np.max(ds_ys.iloc[i-w-1: i-1])) and \
-            (ds_ys.iloc[i-1] > np.max(ds_ys.iloc[i: i+w])):
+#         print(i)
+        if (ys.iloc[i-1] > np.max(ys.iloc[i-w-1: i-1])) and \
+            (ys.iloc[i-1] > np.max(ys.iloc[i: i+w])):
                 ls_ix_peaks.append(ls_ix[i-1])
-        if (ds_ys.iloc[i-1] < np.min(ds_ys.iloc[i-w-1: i-1])) and \
-            (ds_ys.iloc[i-1] < np.min(ds_ys.iloc[i: i+w])):
+        if (ys.iloc[i-1] < np.min(ys.iloc[i-w-1: i-1])) and \
+            (ys.iloc[i-1] < np.min(ys.iloc[i: i+w])):
                 ls_ix_bottoms.append(ls_ix[i-1])
-    ds_peaks = pd.Series(index=ls_ix_peaks, data=ds_ys.loc[ls_ix_peaks])
-    ds_bottoms = pd.Series(index=ls_ix_bottoms, data=ds_ys.loc[ls_ix_bottoms])
+    ds_peaks = pd.Series(index=ls_ix_peaks, data=ys.loc[ls_ix_peaks])
+    ds_bottoms = pd.Series(index=ls_ix_bottoms, data=ys.loc[ls_ix_bottoms])
             
     if pflag == 1:
         # TODO: xaxis optimization for display
-        fig, ax = plt.subplots(1, 1, figsize=(10, 8))
-        ax.plot(ds_ys)
-        ax.scatter(x=ds_peaks.index, y=ds_peaks, marker='o', color='r', alpha=0.5)
-        ax.scatter(x=ds_bottoms.index, y=ds_bottoms, marker='o', color='g', alpha=0.5)
-        for tick in ax.get_xticklabels():
-            tick.set_rotation(45)
+        ls_x = ys.index.tolist()
+        num_x = len(ls_x)
+        ls_time_ix = np.linspace(0,num_x-1,num_x)
+        ls_p = ds_peaks.index.tolist()
+        ls_b = ds_bottoms.index.tolist()
+        ls_peaks_time = [ys.index.get_loc(x) for x in ls_p]
+        ls_bottoms_time = [ys.index.get_loc(x) for x in ls_b]
+        
+        fig, ax = plt.subplots(1, 1, figsize=(12, 8))
+        ax.plot(ls_time_ix, ys.values)
+#        plt.show()
+        ax.scatter(x=ls_peaks_time, y=ds_peaks.values, marker='o', color='r', alpha=0.5)
+        ax.scatter(x=ls_bottoms_time, y=ds_bottoms.values, marker='o', color='g', alpha=0.5)
+
+#        ax.set_xticklabels(ls_x)
+#        for tick in ax.get_xticklabels():
+#            tick.set_rotation(45)
         plt.show()
+#        plt.savefig('1.jpg')
         
     return ds_peaks, ds_bottoms
 
@@ -87,10 +99,10 @@ def VDist(ys, xs, Adjx, Adjy):
     return VD
 
 
-def PIPs(ds_ys, n_PIPs, type_dist, pflag=0):
+def PIPs(ys, n_PIPs, type_dist, pflag=0):
     """
 
-    :param ds_ys: column vector of price series with time index
+    :param ys: column vector of price series with time index
     :param n_PIPs: number of requested PIPs
     :param type_dist: 1 = Euclidean Distance ED,
                       2 = Perpendicular Distance PD,
@@ -100,7 +112,7 @@ def PIPs(ds_ys, n_PIPs, type_dist, pflag=0):
                    PIPs' price in column named y
                    indicating coordinates of PIPs
     """
-    l = len(ds_ys)
+    l = len(ys)
     xs = pd.Series(np.arange(0, l))
 
     ds_PIP_points = pd.Series(np.arange(0, l)) * 0
@@ -131,27 +143,27 @@ def PIPs(ds_ys, n_PIPs, type_dist, pflag=0):
             df_Adjacents.iloc[i, 1] = Existed_PIPs[np.int(b2[i])]
 
         Adjx = df_Adjacents
-        Adjy = pd.DataFrame(data=[ds_ys.iloc[df_Adjacents.iloc[:,0]].values,
-                                  ds_ys.iloc[df_Adjacents.iloc[:,1]].values]).T
+        Adjy = pd.DataFrame(data=[ys.iloc[df_Adjacents.iloc[:,0]].values,
+                                  ys.iloc[df_Adjacents.iloc[:,1]].values]).T
         Adjx.iloc[Existed_PIPs, :] = np.NaN
         Adjy.iloc[Existed_PIPs, :] = np.NaN
         
         if type_dist == 1:
-            D = EDist(ds_ys, xs, Adjx, Adjy)
+            D = EDist(ys, xs, Adjx, Adjy)
         elif type_dist == 2:
-            D = PDist(ds_ys, xs, Adjx, Adjy)
+            D = PDist(ys, xs, Adjx, Adjy)
         else:
-            D = VDist(ds_ys, xs, Adjx, Adjy)
+            D = VDist(ys, xs, Adjx, Adjy)
         
         D[Existed_PIPs]=0
         Dmax = D.argmax()
         ds_PIP_points.iloc[Dmax] = 1
         currentstate += 1
-    PIPxy = pd.Series(index=ds_ys.index[Existed_PIPs], data=ds_ys.iloc[Existed_PIPs])
+    PIPxy = pd.Series(index=ys.index[Existed_PIPs], data=ys.iloc[Existed_PIPs])
     
     if pflag == 1:
         fig, ax = plt.subplots(1, 1, figsize=(12, 8))
-        ax.plot(ds_ys)
+        ax.plot(ys)
         ax.plot(PIPxy, color='b', alpha=0.7)
         ax.scatter(x=PIPxy.index, y=PIPxy, marker='o', color='g', alpha=0.5)
         for tick in ax.get_xticklabels():
@@ -168,6 +180,6 @@ if __name__ == '__main__':
     df_data.set_index('datetime', inplace=True)
     df_data.columns = ['Open', 'High', 'Low', 'Close', 'Volume']
     
-    ds_ys = df_data.Close[:120]
+    ys = df_data.Close[:120]
     # 需要对数据源进行处理 行情中断 10：15-10：29 以及不连续的处理
-    PIPs(ds_ys, 6, type_dist=1, pflag=1)
+    PIPs(ys, 6, type_dist=1, pflag=1)
