@@ -92,14 +92,32 @@ def HS(ys, w, pflag):
     
     ## HS Tops (Normal Form)
     mn = len(PNidx)
+    Pot_Normalcases_Percases = []# bug?
     if mn != 0:
         Pot_Normalcases_Idx = [0] * mn
         for i in range(0, mn):
-            print(i)
-            # Conditions 1 3 4 check
+            # Conditions check
             PerCase = pd.DataFrame(columns=['P/B', 'Price'])
             PerCase.loc[:, 'P/B'] = PB_idx.iloc[PNidx[i]-4: PNidx[i]+1]
             PerCase.loc[:, 'Price'] = ys.loc[PerCase.index.tolist()].values
-    ## HS Bottoms (Inverse Form)
+            # Condition 1 3 4
+            if ((PerCase.iloc[2]['Price'] > np.max([PerCase.iloc[0]['Price'],
+                                                    PerCase.iloc[4]['Price']])) &
+                (PerCase.iloc[0]['Price'] >= 0.5 * np.sum([PerCase.iloc[3]['Price'],
+                                                           PerCase.iloc[4]['Price']])) &
+                (PerCase.iloc[4]['Price'] >= 0.5 * np.sum([PerCase.iloc[0]['Price'],
+                                                          PerCase.iloc[1]['Price']])) &
+                ((ls_x.index(PerCase.index.tolist()[2]) - ls_x.index(PerCase.index.tolist()[0])) <
+                 2.5*(ls_x.index(PerCase.index.tolist()[4]) - ls_x.index(PerCase.index.tolist()[2]))) &
+                ((ls_x.index(PerCase.index.tolist()[4]) - ls_x.index(PerCase.index.tolist()[2])) <
+                 2.5 * (ls_x.index(PerCase.index.tolist()[2]) - ls_x.index(PerCase.index.tolist()[0])))):
+                Pot_Normalcases_Idx[i] = 1
+                Pot_Normalcases_Percases[i] = PerCase # bug?
+    else:
+        Pot_Normalcases_Idx = 0
+
+    mnn = np.sum(Pot_Normalcases_Idx)
+
+     ## HS Bottoms (Inverse Form)
     
     return Patterns
