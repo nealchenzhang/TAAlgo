@@ -91,8 +91,14 @@ def HS(ys, w, pflag):
     PIidx = [i for i,x in enumerate(Pot_Index) if x==2]
     
     ## HS Tops (Normal Form)
+    # Definition of outputs
+    Patterns_Normal_Points = []
+    Patterns_Normal_Necklines = []
+    Patterns_Normal_Breakpoints = []
+    
+    
     mn = len(PNidx)
-    Pot_Normalcases_Percases = []# bug?
+    Pot_Normalcases_Percases = [0] * mn# bug??
     if mn != 0:
         Pot_Normalcases_Idx = [0] * mn
         for i in range(0, mn):
@@ -112,12 +118,39 @@ def HS(ys, w, pflag):
                 ((ls_x.index(PerCase.index.tolist()[4]) - ls_x.index(PerCase.index.tolist()[2])) <
                  2.5 * (ls_x.index(PerCase.index.tolist()[2]) - ls_x.index(PerCase.index.tolist()[0])))):
                 Pot_Normalcases_Idx[i] = 1
-                Pot_Normalcases_Percases[i] = PerCase # bug?
+                Pot_Normalcases_Percases[i] = PerCase # bug??
     else:
         Pot_Normalcases_Idx = 0
 
     mnn = np.sum(Pot_Normalcases_Idx)
-
+    Pot_Normalcases_Idx2 = [i for i,x in enumerate(Pot_Normalcases_Idx) if x==1]
+    j = 0
+    if mnn!=0:
+        for i in range(0, mnn):
+#            print(i)
+            NPerCase = Pot_Normalcases_Percases[Pot_Normalcases_Idx2[i]]
+            Timelimit = ls_x.index(NPerCase.index.tolist()[4]) + ls_x.index(NPerCase.index.tolist()[4]) -\
+            ls_x.index(NPerCase.index.tolist()[0])
+            Neckline_Beta = (NPerCase.iloc[3]['Price'] - NPerCase.iloc[1]['Price']) /\
+            (ls_x.index(NPerCase.index.tolist()[3]) - ls_x.index(NPerCase.index.tolist()[1]))
+            Neckline_Alpha = NPerCase.iloc[1]['Price'] - Neckline_Beta * ls_x.index(NPerCase.index.tolist()[1])
+            if Timelimit <=l:
+                Neckline_OU = list(range(ls_x.index(NPerCase.index.tolist()[4])+1, Timelimit))
+            else:
+                Neckline_OU = list(range(ls_x.index(NPerCase.index.tolist()[4])+1, l))
+            
+            Neckline_OU = pd.DataFrame(index=[ls_x[i] for i in Neckline_OU], data=ys.iloc[Neckline_OU])
+            Neckline_OU.columns = ['Price']
+            Neckline_OU.loc[:, 'Line'] = [ls_x.index(i) for i in Neckline_OU.index.tolist()]
+            Neckline_OU.loc[:, 'Line'] = Neckline_OU.loc[:, 'Line'] * Neckline_Beta + Neckline_Alpha
+            Neckline_OU.loc[:, 'Diff'] = Neckline_OU.loc[:, 'Price'] - Neckline_OU.loc[:, 'Line']
+            # TODO: optimize codes
+            if len((Neckline_OU.where(Neckline_OU.loc[:, 'Diff']<0).dropna()).index.tolist()) != 0:
+                Neckline_Breakpoint = ls_x.index((Neckline_OU.where(Neckline_OU.loc[:, 'Diff']<0).dropna()).index.tolist()[0])
+                j += 1
+                Patterns_Normal_Points.append(NPerCase)
+                Patterns_Normal_Necklines.append([Neckline_Alpha, Neckline_Beta])
+                Patterns_Normal_Breakpoints.append([])
      ## HS Bottoms (Inverse Form)
     
     return Patterns
