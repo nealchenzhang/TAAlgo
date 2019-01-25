@@ -28,9 +28,23 @@ ys = df_data.Close[:300]
 # 需要对数据源进行处理 行情中断 10：15-10：29 以及不连续的处理
 from processing import RW
 
-#class 
+w = 5
 
-
+def line_inter(A, B):
+    """
+    A: ls of coordinates [[x1,y1],[x2,y2]]
+    B: ls
+    """
+    S1 = (A[1][1] - A[0][1]) / (A[1][0] - A[0][0]) # slope1
+    S2 = (B[1][1] - B[0][1]) / (B[1][0] - B[0][0]) # slope2
+    C1 = A[0][1] - S1*A[0][0]                      # constant1
+    C2 = B[0][1] - S2*B[0][0]                      # constant2
+    tstar = (C2 - C1) / (S1 - S2)
+    ystar = S1 * tstar + C1
+    LU = [S1, C1]
+    LD = [S2, C2]
+    
+    return tstar, ystar, LU, LD
 
 def HS(ys, w, pflag):
     """
@@ -95,7 +109,9 @@ def HS(ys, w, pflag):
     Patterns_Normal_Points = []
     Patterns_Normal_Necklines = []
     Patterns_Normal_Breakpoints = []
-    
+    Patterns_Normal_Widths = []
+    Patterns_Normal_Heights = []
+    Patterns_Normal_TL = []
     
     mn = len(PNidx)
     Pot_Normalcases_Percases = [0] * mn# bug??
@@ -150,7 +166,13 @@ def HS(ys, w, pflag):
                 j += 1
                 Patterns_Normal_Points.append(NPerCase)
                 Patterns_Normal_Necklines.append([Neckline_Alpha, Neckline_Beta])
-                Patterns_Normal_Breakpoints.append([])
+                Patterns_Normal_Breakpoints.append([ls_x[Neckline_Breakpoint], ys.loc[ls_x[Neckline_Breakpoint]]])
+                Patterns_Normal_Widths.append(ls_x.index(NPerCase.index.tolist()[3])-ls_x.index(NPerCase.index.tolist()[1]))
+                Patterns_Normal_Heights.append(NPerCase.iloc[2]['Price']-(Neckline_Beta*ls_x.index(NPerCase.index.tolist()[2])+Neckline_Alpha))
+                Patterns_Normal_TL.append(Patterns_Normal_Breakpoints[-1][0]+Patterns_Normal_Widths[-1])
+                tstar, ystar, LU, LD = line_inter([[[ls_x.index(NPerCase.index.tolist()[1]), NPerCase.iloc[1]['Price']],
+                                                     [ls_x.index(NPerCase.index.tolist()[3]), NPerCase.iloc[3]['Price']]],
+                                                   [[],[]]])
      ## HS Bottoms (Inverse Form)
     
     return Patterns
