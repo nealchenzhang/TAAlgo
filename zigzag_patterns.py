@@ -28,12 +28,13 @@ ys = df_data.Close[:1500]
 # 需要对数据源进行处理 行情中断 10：15-10：29 以及不连续的处理
 
 # another example
-ys = pd.read_csv('RB00.csv')
-ys.set_index('Date',inplace=True)
-ys = ys.loc[:, 'RB00_p']
+df_ys = pd.read_csv('RB00.csv')
+df_ys.set_index('Date',inplace=True)
+ys = df_ys.loc[:, 'RB00_p']
+ys = ys[:2000]
 from processing import RW
 
-w = 20
+w = 10
 
 def line_inter(A, B):
     """
@@ -275,21 +276,54 @@ def HS(ys, w, pflag):
         ax.scatter(x=ls_bottoms_time, y=Bottoms.values, marker='o', color='g', alpha=0.5)
 
         if j > 0:
-            print('i')
+#            print('i')
             clr = 'darkred'
             for i in range(0, Patterns_Normal_Numberofnormals):
                 ls_xline = [ls_x.index(ix) for ix in Patterns_Normal_Points[i].index.tolist()]
+                
                 ax.scatter(x=ls_xline, y=Patterns_Normal_Points[i]['Price'].values, color=clr)
                 ax.scatter(x=ls_x.index(Patterns_Normal_Breakpoints[i][0]), y=Patterns_Normal_Breakpoints[i][1],
                            marker='x', color='black')
+                                # Plotting Neckline
+                ls_neckline_x = np.linspace(start=ls_xline[0]-20, stop=ls_x.index(Patterns_Normal_Breakpoints[i][0])+40)
+                ls_neckline_y = ls_neckline_x*Patterns_Normal_Necklines[i][1] + Patterns_Normal_Necklines[i][0]
+                ax.plot(ls_neckline_x, ls_neckline_y, linestyle='-.', color='green')
         if jj > 0:
-            print('jj')
+#            print('jj')
             clr = 'darkgray'
             for i in range(0, Patterns_Inverse_Numberofinverses):
                 ls_xline = [ls_x.index(ix) for ix in Patterns_Inverse_Points[i].index.tolist()]
                 ax.scatter(x=ls_xline, y=Patterns_Inverse_Points[i]['Price'].values, color=clr)
                 ax.scatter(x=ls_x.index(Patterns_Inverse_Breakpoints[i][0]), y=Patterns_Inverse_Breakpoints[i][1],
                            marker='v', color='black')
+                # Plotting Neckline
+                ls_neckline_x = np.linspace(start=ls_xline[0]-20, stop=ls_x.index(Patterns_Inverse_Breakpoints[i][0])+40)
+                ls_neckline_y = ls_neckline_x*Patterns_Inverse_Necklines[i][1] + Patterns_Inverse_Necklines[i][0]
+                ax.plot(ls_neckline_x, ls_neckline_y, linestyle='-.', color='red')
         plt.show()
+#        fig.savefig('teset.png')
 
-    return Patterns
+    return 0
+
+
+if __name__ == '__main__':
+
+    df_data = pd.read_csv('my_data.csv')
+    # 注意 这里datetime 是 str 不是datetime64
+    #df_data.datetime = df_data.datetime.apply(pd.to_datetime)
+    df_data.set_index('datetime', inplace=True)
+    df_data.columns = ['Open', 'High', 'Low', 'Close', 'Volume']
+    
+    ys = df_data.Close[:1500]
+    # 需要对数据源进行处理 行情中断 10：15-10：29 以及不连续的处理
+    
+    # another example
+    df_ys = pd.read_csv('RB00.csv')
+    df_ys.set_index('Date',inplace=True)
+    ys = df_ys.loc[:, 'RB00_p']
+    ys = ys[:2000]
+    from processing import RW
+    
+    w = 10
+    HS(ys, w, pflag=1)
+        
