@@ -18,23 +18,23 @@ from matplotlib.pylab import date2num
 import seaborn as sns
 sns.set_style('white')
 
-df_data = pd.read_csv('my_data.csv')
-# 注意 这里datetime 是 str 不是datetime64
-#df_data.datetime = df_data.datetime.apply(pd.to_datetime)
-df_data.set_index('datetime', inplace=True)
-df_data.columns = ['Open', 'High', 'Low', 'Close', 'Volume']
-
-ys = df_data.Close[:1500]
-# 需要对数据源进行处理 行情中断 10：15-10：29 以及不连续的处理
-
-# another example
-df_ys = pd.read_csv('RB00.csv')
-df_ys.set_index('Date',inplace=True)
-ys = df_ys.loc[:, 'RB00_p']
-ys = ys[:2000]
+#df_data = pd.read_csv('my_data.csv')
+## 注意 这里datetime 是 str 不是datetime64
+##df_data.datetime = df_data.datetime.apply(pd.to_datetime)
+#df_data.set_index('datetime', inplace=True)
+#df_data.columns = ['Open', 'High', 'Low', 'Close', 'Volume']
+#
+#ys = df_data.Close[:1500]
+## 需要对数据源进行处理 行情中断 10：15-10：29 以及不连续的处理
+#
+## another example
+#df_ys = pd.read_csv('RB00.csv')
+#df_ys.set_index('Date',inplace=True)
+#ys = df_ys.loc[:, 'RB00_p']
+#ys = ys[:2000]
 from processing import RW
 
-w = 10
+#w = 10
 
 def line_inter(A, B):
     """
@@ -83,7 +83,7 @@ def HS(ys, w, pflag):
         ##################################################################
     """
     l = len(ys)
-    Peaks, Bottoms = RW(ys, w, pflag=1)
+    Peaks, Bottoms = RW(ys, w, pflag=0)
     
     ls_x = ys.index.tolist()
     ls_p = Peaks.index.tolist()
@@ -308,22 +308,25 @@ def HS(ys, w, pflag):
 
 if __name__ == '__main__':
 
-    df_data = pd.read_csv('my_data.csv')
-    # 注意 这里datetime 是 str 不是datetime64
-    #df_data.datetime = df_data.datetime.apply(pd.to_datetime)
-    df_data.set_index('datetime', inplace=True)
-    df_data.columns = ['Open', 'High', 'Low', 'Close', 'Volume']
-    
-    ys = df_data.Close[:1500]
+#    df_data = pd.read_csv('./Data/my_data.csv')
+#    # 注意 这里datetime 是 str 不是datetime64
+#    #df_data.datetime = df_data.datetime.apply(pd.to_datetime)
+#    df_data.set_index('datetime', inplace=True)
+#    df_data.columns = ['Open', 'High', 'Low', 'Close', 'Volume']
+#    
+#    ys = df_data.Close[:1500]
     # 需要对数据源进行处理 行情中断 10：15-10：29 以及不连续的处理
     
     # another example
-    df_ys = pd.read_csv('RB00.csv')
-    df_ys.set_index('Date',inplace=True)
-    ys = df_ys.loc[:, 'RB00_p']
-    ys = ys[:2000]
-    from processing import RW
+    df_ys = pd.read_csv('./Data/m_i_1d.csv')
+    df_ys.datetime = df_ys.datetime.apply(pd.to_datetime)
+    df_ys.datetime = df_ys.datetime.apply(lambda x: str(x)) 
+    df_ys.set_index('datetime',inplace=True)
+    ls_cols = df_ys.columns.tolist()
+    str_Close = [i for i in ls_cols if i[-6:]=='.close'][0]
+    ys = df_ys.loc[:, str_Close]
+#    ys = ys[:2000]
     
-    w = 10
+    w = 2
     HS(ys, w, pflag=1)
         
