@@ -37,7 +37,7 @@ def RW(ys, w, pflag=0):
         Peaks: data Series with datetime index and price
         Bottoms: data Series with datetime index and price
     """
-    # TODO: if l < w how to correct and in real trading enviromnent how to detect
+    # TODO: if l < w how to correct and in real trading environment how to detect
     l = len(ys)
     ls_ix = ys.index.tolist()
     ls_ix_peaks = []
@@ -173,13 +173,100 @@ def PIPs(ys, n_PIPs, type_dist, pflag=0):
     return PIPxy
 
 
+def TP(ys, iter=0, pflag=0):
+    """
+    ys: column vector of price series
+    iter: 0 means no iteration
+    pflag: plot a graph if 1
+
+    returns:
+        Peaks: data Series with datetime index and price
+        Bottoms: data Series with datetime index and price
+    """
+    l = len(ys)
+    ls_ix = ys.index.tolist()
+    ls_ix_peaks = []
+    ls_ix_bottoms = []
+    for i in range(1, l-1):
+        # print(i)
+        if (ys.iloc[i - 1] > ys.iloc[i]) and (ys.iloc[i + 1] > ys.iloc[i]):
+            ls_ix_bottoms.append(ls_ix[i])
+        if (ys.iloc[i - 1] < ys.iloc[i]) and (ys.iloc[i + 1] < ys.iloc[i]):
+            ls_ix_peaks.append(ls_ix[i])
+    ds_peaks = pd.Series(index=ls_ix_peaks, data=ys.loc[ls_ix_peaks])
+    ds_bottoms = pd.Series(index=ls_ix_bottoms, data=ys.loc[ls_ix_bottoms])
+
+    ds_TPs = ds_peaks.append(ds_bottoms)
+    ds_TPs.sort_index(ascending=True, inplace=True)
+
+    l_TPs = len(ds_TPs)
+    ls_ix_TPs = ds_TPs.index.tolist()
+    ls_ix_TPs_new = []
+    i = 0
+    while i < (l_TPs-3):
+        # TODO: maybe some problem with coding
+        if ((ds_TPs.iloc[i]<ds_TPs.iloc[i+1]) and (ds_TPs.iloc[i]<ds_TPs.iloc[i+2]) \
+                and (ds_TPs.iloc[i]<ds_TPs.iloc[i+3]) and (ds_TPs.iloc[i+2]<ds_TPs.iloc[i+3]) \
+                and (np.abs(ds_TPs.iloc[i+1]-ds_TPs.iloc[i+2])<(np.abs(ds_TPs.iloc[i]-ds_TPs.iloc[i+2])+ \
+                                                                np.abs(ds_TPs.iloc[i+1]-ds_TPs.iloc[i+3])))) \
+            or ((ds_TPs.iloc[i]>ds_TPs.iloc[i+1]) and (ds_TPs.iloc[i]>ds_TPs.iloc[i+2]) \
+                and (ds_TPs.iloc[i+1]>ds_TPs.iloc[i+3]) and (ds_TPs.iloc[i+2]>ds_TPs.iloc[i+3]) \
+                and (np.abs(ds_TPs.iloc[i+2]-ds_TPs.iloc[i+1])<(np.abs(ds_TPs.iloc[i]-ds_TPs.iloc[i+2])+ \
+                                                                np.abs(ds_TPs.iloc[i+1]-ds_TPs.iloc[i+3])))) \
+            or ((np.abs(ds_TPs.iloc[i]/ds_TPs.iloc[i+2]-1)<0.0002) \
+                and (np.abs(ds_TPs.iloc[i+1]/ds_TPs.iloc[i+3]-1)<0.0002)):
+            # TODO: approximately equal in price (hard to define, have to consider the minimum variation)
+            # Here I used the ratio less than a threshold = 0.0002
+            # The threshold could be minimum variation / the previous day settlement? maybe an improvement
+            ls_ix_TPs_new.append(ls_ix_TPs[i])
+            ls_ix_TPs_new.append(ls_ix_TPs[i+3])
+            i += 3
+        else:
+            ls_ix_TPs_new.append(ls_ix_TPs[i])
+            i += 1
+
+    ls_ix_peaks_new = [peak for peak in ls_ix_peaks if peak in ls_ix_TPs_new]
+    ls_ix_bottoms_new = [bottom for bottom in ls_ix_bottoms if bottom in ls_ix_TPs_new]
+
+    ds_peaks_new = pd.Series(index=ls_ix_peaks_new, data=ys.loc[ls_ix_peaks_new])
+    ds_bottoms_new = pd.Series(index=ls_ix_bottoms_new, data=ys.loc[ls_ix_bottoms_new])
+
+    ds_peaks = ds_peaks_new
+    ds_bottoms = ds_bottoms_new
+
+    if pflag == 1:
+        # TODO: xaxis optimization for display
+        ls_x = ys.index.tolist()
+        num_x = len(ls_x)
+        ls_time_ix = np.linspace(0, num_x - 1, num_x)
+        ls_p = ds_peaks.index.tolist()
+        ls_b = ds_bottoms.index.tolist()
+        ls_peaks_time = [ys.index.get_loc(x) for x in ls_p]
+        ls_bottoms_time = [ys.index.get_loc(x) for x in ls_b]
+
+        fig, ax = plt.subplots(1, 1, figsize=(12, 8))
+        ax.plot(ls_time_ix, ys.values)
+        #        plt.show()
+        ax.scatter(x=ls_peaks_time, y=ds_peaks.values, marker='o', color='r', alpha=0.5)
+        ax.scatter(x=ls_bottoms_time, y=ds_bottoms.values, marker='o', color='g', alpha=0.5)
+
+        #        ax.set_xticklabels(ls_x)
+        #        for tick in ax.get_xticklabels():
+        #            tick.set_rotation(45)
+        plt.show()
+    #        plt.savefig('1.jpg')
+
+    return ds_peaks, ds_bottoms
+
 if __name__ == '__main__':
-    df_data = pd.read_csv('my_data.csv')
+
+    df_data = pd.read_csv('./Data/my_data.csv')
     # 注意 这里datetime 是 str 不是datetime64
     #df_data.datetime = df_data.datetime.apply(pd.to_datetime)
     df_data.set_index('datetime', inplace=True)
     df_data.columns = ['Open', 'High', 'Low', 'Close', 'Volume']
     
     ys = df_data.Close[:120]
-    # 需要对数据源进行处理 行情中断 10：15-10：29 以及不连续的处理
-    PIPs(ys, 6, type_dist=1, pflag=1)
+    RW(ys, w=3, pflag=1)
+    # PIPs(ys, 6, type_dist=1, pflag=1)
+    TP(ys, pflag=1)
