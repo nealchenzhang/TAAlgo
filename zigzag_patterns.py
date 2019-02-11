@@ -33,7 +33,7 @@ sns.set_style('white')
 #ys = df_ys.loc[:, 'RB00_p']
 #ys = ys[:2000]
 from processing import RW
-
+from processing import TP
 #w = 10
 
 def line_inter(A, B):
@@ -52,7 +52,7 @@ def line_inter(A, B):
     
     return tstar, ystar, LU, LD
 
-def HS(ys, w, pflag):
+def HS(ys, pflag, method='RW', **kwargs):
     """
     The HS(*) identifies Head and Shoulders Pattern on a price series by
     adopting the conditions presented in (Lucke 2003).
@@ -71,8 +71,16 @@ def HS(ys, w, pflag):
                     tB < tP3 + (tP3 - tP1)
 
     :param ys: column vector of price series with time index
-    :param w: width of the rolling window (total 2w+1)
     :param pflag: plot a graph if 1
+    :param method:
+        1) RW: rolling window method to find turning points
+                kwargs['w']
+        2) TP: turning points with filter methods (iter=2)
+                kwargs['iteration']
+    :param kwargs: {'w': width of the rolling window (total 2w+1)
+                    'iteration': iteration number for TP method,
+                    'savefig': True,
+                    'figname': str(figname)}
     :return:
         TODO:
         ##################################################################
@@ -83,7 +91,10 @@ def HS(ys, w, pflag):
         ##################################################################
     """
     l = len(ys)
-    Peaks, Bottoms = RW(ys, w, pflag=0)
+    if method == 'RW':
+        Peaks, Bottoms = RW(ys, w=kwargs['w'], pflag=0)
+    elif method == 'TP':
+        Peaks, Bottoms = TP(ys, iteration=kwargs['iteration'], pflag=0)
     
     ls_x = ys.index.tolist()
     ls_p = Peaks.index.tolist()
@@ -146,7 +157,10 @@ def HS(ys, w, pflag):
         Pot_Normalcases_Idx = 0
 
     mnn = np.sum(Pot_Normalcases_Idx)
-    Pot_Normalcases_Idx2 = [i for i,x in enumerate(Pot_Normalcases_Idx) if x==1]
+    if mnn == 0:
+        pass
+    else:
+        Pot_Normalcases_Idx2 = [i for i,x in enumerate(Pot_Normalcases_Idx) if x==1]
     j = 0
     if mnn!=0:
         for i in range(0, mnn):
@@ -220,7 +234,10 @@ def HS(ys, w, pflag):
         Pot_Inversecases_Idx = 0
 
     mii = np.sum(Pot_Inversecases_Idx)
-    Pot_Inversecases_Idx2 = [i for i, x in enumerate(Pot_Inversecases_Idx) if x == 1]
+    if mii == 0:
+        pass
+    else:
+        Pot_Inversecases_Idx2 = [i for i, x in enumerate(Pot_Inversecases_Idx) if x == 1]
     jj = 0
     if mii != 0:
         for i in range(0, mii):
@@ -300,8 +317,9 @@ def HS(ys, w, pflag):
                 ls_neckline_x = np.linspace(start=ls_xline[0]-20, stop=ls_x.index(Patterns_Inverse_Breakpoints[i][0])+40)
                 ls_neckline_y = ls_neckline_x*Patterns_Inverse_Necklines[i][1] + Patterns_Inverse_Necklines[i][0]
                 ax.plot(ls_neckline_x, ls_neckline_y, linestyle='-.', color='red')
+        if kwargs['savefig'] == True:
+            fig.savefig('./Data/figs/'+ kwargs['figname'] +'.png')
         plt.show()
-#        fig.savefig('teset.png')
 
     return 0
 
@@ -328,5 +346,5 @@ if __name__ == '__main__':
 #    ys = ys[:2000]
     
     w = 2
-    HS(ys, w, pflag=1)
+#    HS(ys, w, pflag=1)
         
