@@ -34,6 +34,7 @@ sns.set_style('white')
 #ys = ys[:2000]
 from processing import RW
 from processing import TP
+from processing import PIPs
 #w = 10
 
 def line_inter(A, B):
@@ -92,9 +93,12 @@ def HS(ys, pflag, method='RW', **kwargs):
     """
     l = len(ys)
     if method == 'RW':
-        Peaks, Bottoms = RW(ys, w=kwargs['w'], pflag=0)
+        Peaks, Bottoms = RW(ys, w=kwargs['w'], pflag=1)
     elif method == 'TP':
-        Peaks, Bottoms = TP(ys, iteration=kwargs['iteration'], pflag=0)
+        Peaks, Bottoms = TP(ys, iteration=kwargs['iteration'], pflag=1)
+    # elif method == 'PIP':
+    #     Peaks, Bottoms = PIPs(ys, n_PIPs=20, type_dist='', pflag=1)
+
     
     ls_x = ys.index.tolist()
     ls_p = Peaks.index.tolist()
@@ -297,7 +301,7 @@ def HS(ys, pflag, method='RW', **kwargs):
             clr = 'darkred'
             for i in range(0, Patterns_Normal_Numberofnormals):
                 ls_xline = [ls_x.index(ix) for ix in Patterns_Normal_Points[i].index.tolist()]
-                
+
                 ax.scatter(x=ls_xline, y=Patterns_Normal_Points[i]['Price'].values, color=clr)
                 ax.scatter(x=ls_x.index(Patterns_Normal_Breakpoints[i][0]), y=Patterns_Normal_Breakpoints[i][1],
                            marker='x', color='black')
@@ -321,7 +325,8 @@ def HS(ys, pflag, method='RW', **kwargs):
             fig.savefig('./Data/figs/'+ kwargs['figname'] +'.png')
         plt.show()
 
-    return 0
+    return [[Patterns_Normal_Points, Patterns_Normal_Breakpoints, Patterns_Normal_Necklines, Patterns_Normal_Numberofnormals],
+            [Patterns_Inverse_Points, Patterns_Inverse_Breakpoints, Patterns_Inverse_Necklines, Patterns_Inverse_Numberofinverses]]
 
 
 if __name__ == '__main__':
