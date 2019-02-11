@@ -172,11 +172,60 @@ def PIPs(ys, n_PIPs, type_dist, pflag=0):
         plt.show()
     return PIPxy
 
+def elemination(ds_peaks, ds_bottoms):
+    ls_ix_peaks = ds_peaks.index.tolist()
+    ls_ix_bottoms = ds_bottoms.index.tolist()
+    ds_TPs = ds_peaks.append(ds_bottoms)
+    ds_TPs.sort_index(ascending=True, inplace=True)
 
-def TP(ys, iter=0, pflag=0):
+    l_TPs = len(ds_TPs)
+    ls_ix_TPs = ds_TPs.index.tolist()
+    ls_ix_TPs_new = []
+    i = 0
+    while i < (l_TPs-3):
+        ls_ix_TPs_new.append(ls_ix_TPs[i])
+#        print(ls_ix_TPs_new)
+        if ((ds_TPs.iloc[i]<ds_TPs.iloc[i+1]) and (ds_TPs.iloc[i]<ds_TPs.iloc[i+2]) \
+                and (ds_TPs.iloc[i+1]<ds_TPs.iloc[i+3]) and (ds_TPs.iloc[i+2]<ds_TPs.iloc[i+3]) \
+                and (np.abs(ds_TPs.iloc[i+1]-ds_TPs.iloc[i+2])<(np.abs(ds_TPs.iloc[i]-ds_TPs.iloc[i+2])+ \
+                                                                np.abs(ds_TPs.iloc[i+1]-ds_TPs.iloc[i+3])))) \
+            or ((ds_TPs.iloc[i]>ds_TPs.iloc[i+1]) and (ds_TPs.iloc[i]>ds_TPs.iloc[i+2]) \
+                and (ds_TPs.iloc[i+1]>ds_TPs.iloc[i+3]) and (ds_TPs.iloc[i+2]>ds_TPs.iloc[i+3]) \
+                and (np.abs(ds_TPs.iloc[i+2]-ds_TPs.iloc[i+1])<(np.abs(ds_TPs.iloc[i]-ds_TPs.iloc[i+2])+ \
+                                                                np.abs(ds_TPs.iloc[i+1]-ds_TPs.iloc[i+3])))) \
+            or ((np.abs(ds_TPs.iloc[i]/ds_TPs.iloc[i+2]-1)<0.0002) and\
+                (np.abs(ds_TPs.iloc[i+1]/ds_TPs.iloc[i+3]-1)<0.0002)):
+            # TODO: approximately equal in price (hard to define, have to consider the minimum variation)
+            # Here I used the ratio less than a threshold = 0.0002
+            # The threshold could be minimum variation / the previous day settlement? maybe an improvement
+            ls_ix_TPs_new.append(ls_ix_TPs[i+3])
+            i += 3
+        else:
+            i += 1
+    if i == l_TPs-3:
+        ls_ix_TPs_new.append(ls_ix_TPs[i])
+        ls_ix_TPs_new.append(ls_ix_TPs[i+1])
+        ls_ix_TPs_new.append(ls_ix_TPs[i+2])
+    elif i == l_TPs-2:
+        ls_ix_TPs_new.append(ls_ix_TPs[i])
+        ls_ix_TPs_new.append(ls_ix_TPs[i+1])
+    elif i == l_TPs-1:
+        ls_ix_TPs_new.append(ls_ix_TPs[i])
+                
+    ls_ix_peaks_new = [peak for peak in ls_ix_peaks if peak in ls_ix_TPs_new]
+    ls_ix_bottoms_new = [bottom for bottom in ls_ix_bottoms if bottom in ls_ix_TPs_new]
+
+    ds_peaks_new = pd.Series(index=ls_ix_peaks_new, data=ds_TPs.loc[ls_ix_peaks_new])
+    ds_bottoms_new = pd.Series(index=ls_ix_bottoms_new, data=ds_TPs.loc[ls_ix_bottoms_new])
+
+    return ds_peaks_new, ds_bottoms_new
+
+def TP(ys, iteration=0, pflag=0):
     """
+    This method is based on the paper after Jiangling Yin, Yain-Whar Si, Zhiguo Gong
+        Financial Time Series Segmentation Based on Turning Points
     ys: column vector of price series
-    iter: 0 means no iteration
+    iteration: 0 means no iteration
     pflag: plot a graph if 1
 
     returns:
@@ -195,44 +244,17 @@ def TP(ys, iter=0, pflag=0):
             ls_ix_peaks.append(ls_ix[i])
     ds_peaks = pd.Series(index=ls_ix_peaks, data=ys.loc[ls_ix_peaks])
     ds_bottoms = pd.Series(index=ls_ix_bottoms, data=ys.loc[ls_ix_bottoms])
-
-    ds_TPs = ds_peaks.append(ds_bottoms)
-    ds_TPs.sort_index(ascending=True, inplace=True)
-
-    l_TPs = len(ds_TPs)
-    ls_ix_TPs = ds_TPs.index.tolist()
-    ls_ix_TPs_new = []
-    i = 0
-    while i < (l_TPs-3):
-        # TODO: maybe some problem with coding
-        if ((ds_TPs.iloc[i]<ds_TPs.iloc[i+1]) and (ds_TPs.iloc[i]<ds_TPs.iloc[i+2]) \
-                and (ds_TPs.iloc[i]<ds_TPs.iloc[i+3]) and (ds_TPs.iloc[i+2]<ds_TPs.iloc[i+3]) \
-                and (np.abs(ds_TPs.iloc[i+1]-ds_TPs.iloc[i+2])<(np.abs(ds_TPs.iloc[i]-ds_TPs.iloc[i+2])+ \
-                                                                np.abs(ds_TPs.iloc[i+1]-ds_TPs.iloc[i+3])))) \
-            or ((ds_TPs.iloc[i]>ds_TPs.iloc[i+1]) and (ds_TPs.iloc[i]>ds_TPs.iloc[i+2]) \
-                and (ds_TPs.iloc[i+1]>ds_TPs.iloc[i+3]) and (ds_TPs.iloc[i+2]>ds_TPs.iloc[i+3]) \
-                and (np.abs(ds_TPs.iloc[i+2]-ds_TPs.iloc[i+1])<(np.abs(ds_TPs.iloc[i]-ds_TPs.iloc[i+2])+ \
-                                                                np.abs(ds_TPs.iloc[i+1]-ds_TPs.iloc[i+3])))) \
-            or ((np.abs(ds_TPs.iloc[i]/ds_TPs.iloc[i+2]-1)<0.0002) \
-                and (np.abs(ds_TPs.iloc[i+1]/ds_TPs.iloc[i+3]-1)<0.0002)):
-            # TODO: approximately equal in price (hard to define, have to consider the minimum variation)
-            # Here I used the ratio less than a threshold = 0.0002
-            # The threshold could be minimum variation / the previous day settlement? maybe an improvement
-            ls_ix_TPs_new.append(ls_ix_TPs[i])
-            ls_ix_TPs_new.append(ls_ix_TPs[i+3])
-            i += 3
-        else:
-            ls_ix_TPs_new.append(ls_ix_TPs[i])
-            i += 1
-
-    ls_ix_peaks_new = [peak for peak in ls_ix_peaks if peak in ls_ix_TPs_new]
-    ls_ix_bottoms_new = [bottom for bottom in ls_ix_bottoms if bottom in ls_ix_TPs_new]
-
-    ds_peaks_new = pd.Series(index=ls_ix_peaks_new, data=ys.loc[ls_ix_peaks_new])
-    ds_bottoms_new = pd.Series(index=ls_ix_bottoms_new, data=ys.loc[ls_ix_bottoms_new])
-
-    ds_peaks = ds_peaks_new
-    ds_bottoms = ds_bottoms_new
+    
+    itero = 0
+    while itero < iteration:
+        ds_peaks_new, ds_bottoms_new = elemination(ds_peaks, ds_bottoms)
+        ds_peaks = ds_peaks_new
+        ds_bottoms = ds_bottoms_new
+        print(ds_peaks)
+        print(ds_bottoms)
+        itero += 1
+    else:
+        pass
 
     if pflag == 1:
         # TODO: xaxis optimization for display
@@ -267,6 +289,7 @@ if __name__ == '__main__':
     df_data.columns = ['Open', 'High', 'Low', 'Close', 'Volume']
     
     ys = df_data.Close[:120]
-    RW(ys, w=3, pflag=1)
+#    RW(ys, w=3, pflag=1)
     # PIPs(ys, 6, type_dist=1, pflag=1)
-    TP(ys, pflag=1)
+    peaks, bottoms=TP(ys, iteration=1, pflag=1)
+
