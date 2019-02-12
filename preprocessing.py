@@ -40,9 +40,11 @@ def PB_plotting(ys, Peaks, Bottoms, savefig=False):
 
 ###############################################################################
 # Useful tools
-# elemination function to filter peaks and bottoms
+# elimination function to filter peaks and bottoms
 ###############################################################################
-def elemination(Peaks, Bottoms):
+
+
+def elimination(Peaks, Bottoms):
     ls_ix_peaks = Peaks.index.tolist()
     ls_ix_bottoms = Bottoms.index.tolist()
     ds_TPs = Peaks.append(Bottoms)
@@ -93,6 +95,8 @@ def elemination(Peaks, Bottoms):
 ###############################################################################
 # Method 1: Rolling Window
 ###############################################################################
+
+
 def RW(ys, w, iteration=0):
     """
     Rolling window method
@@ -123,7 +127,7 @@ def RW(ys, w, iteration=0):
     
     itero = 0
     while itero < iteration:
-        Peaks_new, Bottoms_new = elemination(Peaks, Bottoms)
+        Peaks_new, Bottoms_new = elimination(Peaks, Bottoms)
         Peaks = Peaks_new
         Bottoms = Bottoms_new
         itero += 1
@@ -134,6 +138,7 @@ def RW(ys, w, iteration=0):
 ###############################################################################
 # Method 2: Turning Points
 ###############################################################################
+
 
 def TP(ys, iteration=0):
     """
@@ -161,7 +166,7 @@ def TP(ys, iteration=0):
     
     itero = 0
     while itero < iteration:
-        Peaks_new, Bottoms_new = elemination(Peaks, Bottoms)
+        Peaks_new, Bottoms_new = elimination(Peaks, Bottoms)
         Peaks = Peaks_new
         Bottoms = Bottoms_new
         itero += 1
@@ -174,6 +179,8 @@ def TP(ys, iteration=0):
 # Method 3: Perceptually Important Points
 # Output of this method should be used with caution
 ###############################################################################
+
+
 def EDist(ys, xs, Adjx, Adjy):
     ED = ((Adjx.iloc[:, 1].values - xs.values)**2 + (Adjy.iloc[:, 1].values - ys.values)**2)**(1/2)+\
     ((Adjx.iloc[:, 0].values - xs.values)**2 + (Adjy.iloc[:, 0].values - ys.values)**2)**(1/2)
@@ -193,6 +200,7 @@ def VDist(ys, xs, Adjx, Adjy):
     Yshat = slopes * xs.values + constants
     VD = np.abs(Yshat.values - ys.values)
     return VD
+
 
 def PIPs(ys, n_PIPs, type_dist, pflag=0):
     """
@@ -266,6 +274,7 @@ def PIPs(ys, n_PIPs, type_dist, pflag=0):
 #        plt.tight_layout()
         plt.show()
     return PIPxy
+
 
 if __name__ == '__main__':
 

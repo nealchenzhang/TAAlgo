@@ -4,15 +4,10 @@ Created on Sun Jan 20 17:34:07 2019
 
 @author: chen zhang
 """
-import datetime as dt
 
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
-from matplotlib.dates import DateFormatter, WeekdayLocator, DayLocator, MONDAY,YEARLY
-from mpl_finance import candlestick_ohlc
-from matplotlib.pylab import date2num
 
 import seaborn as sns
 sns.set_style('white')
@@ -25,11 +20,11 @@ df_data.columns = ['Open', 'High', 'Low', 'Close', 'Volume']
 
 ys = df_data.Close[:300]
 # 需要对数据源进行处理 行情中断 10：15-10：29 以及不连续的处理
-from processing import RW
+from preprocessing import RW
 
 # TODO fibonacci
 
-def HSAR(ys, w, x, pflag=0):
+def HSAR(ys, w, x, iteration):
     """
     The HSAR(*) identifies HSARs at time t conditioning information up to time t-1.
     Function RW from processing is embedded.
@@ -46,7 +41,7 @@ def HSAR(ys, w, x, pflag=0):
         Freq: frequencies for each bin
         x_act: actual percentage of the bins' distance
     """
-    Peaks, Bottoms = RW(ys, w, pflag=1)
+    Peaks, Bottoms = RW(ys, w, iteration)
     # TODO: commodity price is not continuously changing, should be careful with
     # TODO: data preprocessing
     L = Peaks.append(Bottoms)
