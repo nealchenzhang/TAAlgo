@@ -32,9 +32,9 @@ sns.set_style('white')
 #df_ys.set_index('Date',inplace=True)
 #ys = df_ys.loc[:, 'RB00_p']
 #ys = ys[:2000]
-from processing import RW
-from processing import TP
-from processing import PIPs
+from preprocessing import RW
+from preprocessing import TP
+from preprocessing import PIPs
 #w = 10
 
 def line_inter(A, B):
