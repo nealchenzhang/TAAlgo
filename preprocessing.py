@@ -31,10 +31,17 @@ def PB_plotting(ys, Peaks, Bottoms, savefig=False):
 #        plt.show()
     ax.scatter(x=ls_peaks_time, y=Peaks.values, marker='o', color='r', alpha=0.5)
     ax.scatter(x=ls_bottoms_time, y=Bottoms.values, marker='o', color='g', alpha=0.5)
-
-#        ax.set_xticklabels(ls_x)
-#        for tick in ax.get_xticklabels():
-#            tick.set_rotation(45)
+    
+    for i in ls_peaks_time:
+        ax.text(x=i, y=Peaks.loc[ls_x[i]],
+                s=ls_x[i], withdash=True,
+                )
+    new_xticklabels = [ls_x[np.int(i)] for i in list(ax.get_xticks()) if i in ls_time_ix]
+    new_xticklabels = [ls_x[0]] + new_xticklabels
+    new_xticklabels.append(ls_x[-1])
+    ax.set_xticklabels(new_xticklabels)
+    for tick in ax.get_xticklabels():
+        tick.set_rotation(15)
 #        plt.savefig('1.jpg')
     plt.show()
 
@@ -284,8 +291,8 @@ if __name__ == '__main__':
     df_data.columns = ['Open', 'High', 'Low', 'Close', 'Volume']
     
     ys = df_data.Close[:120]
-    Peaks, Bottoms = RW(ys, w=1, iteration=1)
+    Peaks, Bottoms = RW(ys, w=4, iteration=0)
     PB_plotting(ys, Peaks, Bottoms, savefig=False)
-    Peaks, Bottoms=TP(ys, iteration=1)
-    PB_plotting(ys, Peaks, Bottoms, savefig=False)
+#    Peaks, Bottoms=TP(ys, iteration=1)
+#    PB_plotting(ys, Peaks, Bottoms, savefig=False)
 
