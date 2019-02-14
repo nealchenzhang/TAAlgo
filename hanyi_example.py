@@ -12,17 +12,14 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from matplotlib.dates import DateFormatter, WeekdayLocator, DayLocator, MONDAY,YEARLY
-from mpl_finance import candlestick_ohlc
-from matplotlib.pylab import date2num
-
 import seaborn as sns
 sns.set_style('white')
 
 from zigzag_patterns import HS
 
-file_list = os.listdir('./Data/')
-file_list = [i for i in file_list if '.csv' in i]
+
+ls_file = os.listdir('./Data')
+ls_file = [i for i in ls_file if '.csv' in i and '_' in i]
 
 df_ys = pd.read_csv('./Data/m_i_1d.csv')
 df_ys.datetime = df_ys.datetime.apply(pd.to_datetime)

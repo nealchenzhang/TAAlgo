@@ -18,24 +18,12 @@ from matplotlib.pylab import date2num
 import seaborn as sns
 sns.set_style('white')
 
-#df_data = pd.read_csv('my_data.csv')
-## 注意 这里datetime 是 str 不是datetime64
-##df_data.datetime = df_data.datetime.apply(pd.to_datetime)
-#df_data.set_index('datetime', inplace=True)
-#df_data.columns = ['Open', 'High', 'Low', 'Close', 'Volume']
-#
-#ys = df_data.Close[:1500]
-## 需要对数据源进行处理 行情中断 10：15-10：29 以及不连续的处理
-#
-## another example
-#df_ys = pd.read_csv('RB00.csv')
-#df_ys.set_index('Date',inplace=True)
-#ys = df_ys.loc[:, 'RB00_p']
-#ys = ys[:2000]
 from preprocessing import RW
 from preprocessing import TP
-from preprocessing import PIPs
-#w = 10
+#from preprocessing import PIPs
+
+from preprocessing import PB_plotting
+
 
 def line_inter(A, B):
     """
@@ -83,22 +71,14 @@ def HS(ys, pflag, method='RW', **kwargs):
                     'savefig': True,
                     'figname': str(figname)}
     :return:
-        TODO:
-        ##################################################################
-        SAR: horizontal support and resistance levels
-        Bounds: bounds of bins used to classify the peaks and bottoms
-        Freq: frequencies for each bin
-        x_act: actual percentage of the bins' distance
-        ##################################################################
     """
     l = len(ys)
     if method == 'RW':
-        Peaks, Bottoms = RW(ys, w=kwargs['w'], pflag=1)
+        Peaks, Bottoms = RW(ys, w=kwargs['w'], iteration=kwargs['iteration'])
     elif method == 'TP':
-        Peaks, Bottoms = TP(ys, iteration=kwargs['iteration'], pflag=1)
-    # elif method == 'PIP':
-    #     Peaks, Bottoms = PIPs(ys, n_PIPs=20, type_dist='', pflag=1)
-
+        Peaks, Bottoms = TP(ys, iteration=kwargs['iteration'])
+    if pflag == 1:
+        PB_plotting(ys, Peaks, Bottoms)
     
     ls_x = ys.index.tolist()
     ls_p = Peaks.index.tolist()
@@ -321,8 +301,8 @@ def HS(ys, pflag, method='RW', **kwargs):
                 ls_neckline_x = np.linspace(start=ls_xline[0]-20, stop=ls_x.index(Patterns_Inverse_Breakpoints[i][0])+40)
                 ls_neckline_y = ls_neckline_x*Patterns_Inverse_Necklines[i][1] + Patterns_Inverse_Necklines[i][0]
                 ax.plot(ls_neckline_x, ls_neckline_y, linestyle='-.', color='red')
-        if kwargs['savefig'] == True:
-            fig.savefig('./Data/figs/'+ kwargs['figname'] +'.png')
+#        if kwargs['savefig'] == True:
+#            fig.savefig('./Data/figs/'+ kwargs['figname'] +'.png')
         plt.show()
 
     return [[Patterns_Normal_Points, Patterns_Normal_Breakpoints, Patterns_Normal_Necklines, Patterns_Normal_Numberofnormals],
@@ -330,17 +310,7 @@ def HS(ys, pflag, method='RW', **kwargs):
 
 
 if __name__ == '__main__':
-
-#    df_data = pd.read_csv('./Data/my_data.csv')
-#    # 注意 这里datetime 是 str 不是datetime64
-#    #df_data.datetime = df_data.datetime.apply(pd.to_datetime)
-#    df_data.set_index('datetime', inplace=True)
-#    df_data.columns = ['Open', 'High', 'Low', 'Close', 'Volume']
-#    
-#    ys = df_data.Close[:1500]
-    # 需要对数据源进行处理 行情中断 10：15-10：29 以及不连续的处理
     
-    # another example
     df_ys = pd.read_csv('./Data/m_i_1d.csv')
     df_ys.datetime = df_ys.datetime.apply(pd.to_datetime)
     df_ys.datetime = df_ys.datetime.apply(lambda x: str(x)) 
@@ -348,8 +318,7 @@ if __name__ == '__main__':
     ls_cols = df_ys.columns.tolist()
     str_Close = [i for i in ls_cols if i[-6:]=='.close'][0]
     ys = df_ys.loc[:, str_Close]
-#    ys = ys[:2000]
     
-    w = 2
-#    HS(ys, w, pflag=1)
-        
+    [[Patterns_Normal_Points, Patterns_Normal_Breakpoints, Patterns_Normal_Necklines, Patterns_Normal_Numberofnormals],
+     [Patterns_Inverse_Points, Patterns_Inverse_Breakpoints, Patterns_Inverse_Necklines, Patterns_Inverse_Numberofinverses]] \
+     = HS(ys, pflag=1, method='RW', w=1, iteration=0)
