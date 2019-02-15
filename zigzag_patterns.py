@@ -11,9 +11,9 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from matplotlib.dates import DateFormatter, WeekdayLocator, DayLocator, MONDAY,YEARLY
-from mpl_finance import candlestick_ohlc
-from matplotlib.pylab import date2num
+#from matplotlib.dates import DateFormatter, WeekdayLocator, DayLocator, MONDAY,YEARLY
+#from mpl_finance import candlestick_ohlc
+#from matplotlib.pylab import date2num
 
 import seaborn as sns
 sns.set_style('white')
@@ -24,6 +24,63 @@ from preprocessing import TP
 
 from preprocessing import PB_plotting
 
+
+def HS_plotting(ys, Peaks, Bottoms, 
+                Patterns_Normal_Numberofnormals,
+                Patterns_Inverse_Numberofinverses,
+                savefig=False):
+    j = Patterns_Normal_Numberofnormals
+    jj = Patterns_Inverse_Numberofinverses
+    
+    ls_x = ys.index.tolist()
+    num_x = len(ls_x)
+    ls_time_ix = np.linspace(0,num_x-1,num_x)
+    ls_p = Peaks.index.tolist()
+    ls_b = Bottoms.index.tolist()
+    ls_peaks_time = [ys.index.get_loc(x) for x in ls_p]
+    ls_bottoms_time = [ys.index.get_loc(x) for x in ls_b]
+
+    
+    if ((j>0) or (jj>0)):
+        fig, ax = plt.subplots(1,1, figsize=(12, 8))
+        num_x = len(ls_x)
+        ls_time_ix = np.linspace(0, num_x-1, num_x)
+
+        ls_peaks_time = [ys.index.get_loc(x) for x in ls_p]
+        ls_bottoms_time = [ys.index.get_loc(x) for x in ls_b]
+
+        ax.plot(ls_time_ix, ys.values)
+        ax.scatter(x=ls_peaks_time, y=Peaks.values, marker='o', color='r', alpha=0.5)
+        ax.scatter(x=ls_bottoms_time, y=Bottoms.values, marker='o', color='g', alpha=0.5)
+
+        if j > 0:
+#            print('i')
+            clr = 'darkred'
+            for i in range(0, Patterns_Normal_Numberofnormals):
+                ls_xline = [ls_x.index(ix) for ix in Patterns_Normal_Points[i].index.tolist()]
+
+                ax.scatter(x=ls_xline, y=Patterns_Normal_Points[i]['Price'].values, color=clr)
+                ax.scatter(x=ls_x.index(Patterns_Normal_Breakpoints[i][0]), y=Patterns_Normal_Breakpoints[i][1],
+                           marker='x', color='black')
+                                # Plotting Neckline
+                ls_neckline_x = np.linspace(start=ls_xline[0]-20, stop=ls_x.index(Patterns_Normal_Breakpoints[i][0])+40)
+                ls_neckline_y = ls_neckline_x*Patterns_Normal_Necklines[i][1] + Patterns_Normal_Necklines[i][0]
+                ax.plot(ls_neckline_x, ls_neckline_y, linestyle='-.', color='green')
+        if jj > 0:
+#            print('jj')
+            clr = 'darkgray'
+            for i in range(0, Patterns_Inverse_Numberofinverses):
+                ls_xline = [ls_x.index(ix) for ix in Patterns_Inverse_Points[i].index.tolist()]
+                ax.scatter(x=ls_xline, y=Patterns_Inverse_Points[i]['Price'].values, color=clr)
+                ax.scatter(x=ls_x.index(Patterns_Inverse_Breakpoints[i][0]), y=Patterns_Inverse_Breakpoints[i][1],
+                           marker='v', color='black')
+                # Plotting Neckline
+                ls_neckline_x = np.linspace(start=ls_xline[0]-20, stop=ls_x.index(Patterns_Inverse_Breakpoints[i][0])+40)
+                ls_neckline_y = ls_neckline_x*Patterns_Inverse_Necklines[i][1] + Patterns_Inverse_Necklines[i][0]
+                ax.plot(ls_neckline_x, ls_neckline_y, linestyle='-.', color='red')
+#        if kwargs['savefig'] == True:
+#            fig.savefig('./Data/figs/'+ kwargs['figname'] +'.png')
+        plt.show()
 
 def line_inter(A, B):
     """
@@ -262,52 +319,18 @@ def HS(ys, pflag, method='RW', **kwargs):
                                                     [ls_x.index(Patterns_Inverse_Breakpoints[-1][0]), Patterns_Inverse_Breakpoints[-1][1]]])
                 Patterns_Inverse_PT.append(ystar - Patterns_Inverse_Heights[-1])
     Patterns_Inverse_Numberofinverses = jj
-
-    ## Plotting
-    if (pflag == 1) & ((j>0) or (jj>0)):
-        fig, ax = plt.subplots(1,1, figsize=(12, 8))
-        num_x = len(ls_x)
-        ls_time_ix = np.linspace(0, num_x-1, num_x)
-
-        ls_peaks_time = [ys.index.get_loc(x) for x in ls_p]
-        ls_bottoms_time = [ys.index.get_loc(x) for x in ls_b]
-
-        ax.plot(ls_time_ix, ys.values)
-        ax.scatter(x=ls_peaks_time, y=Peaks.values, marker='o', color='r', alpha=0.5)
-        ax.scatter(x=ls_bottoms_time, y=Bottoms.values, marker='o', color='g', alpha=0.5)
-
-        if j > 0:
-#            print('i')
-            clr = 'darkred'
-            for i in range(0, Patterns_Normal_Numberofnormals):
-                ls_xline = [ls_x.index(ix) for ix in Patterns_Normal_Points[i].index.tolist()]
-
-                ax.scatter(x=ls_xline, y=Patterns_Normal_Points[i]['Price'].values, color=clr)
-                ax.scatter(x=ls_x.index(Patterns_Normal_Breakpoints[i][0]), y=Patterns_Normal_Breakpoints[i][1],
-                           marker='x', color='black')
-                                # Plotting Neckline
-                ls_neckline_x = np.linspace(start=ls_xline[0]-20, stop=ls_x.index(Patterns_Normal_Breakpoints[i][0])+40)
-                ls_neckline_y = ls_neckline_x*Patterns_Normal_Necklines[i][1] + Patterns_Normal_Necklines[i][0]
-                ax.plot(ls_neckline_x, ls_neckline_y, linestyle='-.', color='green')
-        if jj > 0:
-#            print('jj')
-            clr = 'darkgray'
-            for i in range(0, Patterns_Inverse_Numberofinverses):
-                ls_xline = [ls_x.index(ix) for ix in Patterns_Inverse_Points[i].index.tolist()]
-                ax.scatter(x=ls_xline, y=Patterns_Inverse_Points[i]['Price'].values, color=clr)
-                ax.scatter(x=ls_x.index(Patterns_Inverse_Breakpoints[i][0]), y=Patterns_Inverse_Breakpoints[i][1],
-                           marker='v', color='black')
-                # Plotting Neckline
-                ls_neckline_x = np.linspace(start=ls_xline[0]-20, stop=ls_x.index(Patterns_Inverse_Breakpoints[i][0])+40)
-                ls_neckline_y = ls_neckline_x*Patterns_Inverse_Necklines[i][1] + Patterns_Inverse_Necklines[i][0]
-                ax.plot(ls_neckline_x, ls_neckline_y, linestyle='-.', color='red')
-#        if kwargs['savefig'] == True:
-#            fig.savefig('./Data/figs/'+ kwargs['figname'] +'.png')
-        plt.show()
-
-    return [[Patterns_Normal_Points, Patterns_Normal_Breakpoints, Patterns_Normal_Necklines, Patterns_Normal_Numberofnormals],
-            [Patterns_Inverse_Points, Patterns_Inverse_Breakpoints, Patterns_Inverse_Necklines, Patterns_Inverse_Numberofinverses]]
-
+    
+    dict_Patterns = {'Normal': {'Points': Patterns_Normal_Points,
+                                'Breakpoints': Patterns_Normal_Breakpoints,
+                                'Necklines': Patterns_Normal_Necklines,
+                                'Numberofnormals': Patterns_Normal_Numberofnormals},
+                     'Inverse': {'Points': Patterns_Inverse_Points,
+                                'Breakpoints': Patterns_Inverse_Breakpoints,
+                                'Necklines': Patterns_Inverse_Necklines,
+                                'Numberofnormals': Patterns_Inverse_Numberofinverses}
+                     }
+                     
+    return dict_Patterns
 
 if __name__ == '__main__':
     
@@ -319,6 +342,4 @@ if __name__ == '__main__':
     str_Close = [i for i in ls_cols if i[-6:]=='.close'][0]
     ys = df_ys.loc[:, str_Close]
     
-    [[Patterns_Normal_Points, Patterns_Normal_Breakpoints, Patterns_Normal_Necklines, Patterns_Normal_Numberofnormals],
-     [Patterns_Inverse_Points, Patterns_Inverse_Breakpoints, Patterns_Inverse_Necklines, Patterns_Inverse_Numberofinverses]] \
-     = HS(ys, pflag=1, method='RW', w=1, iteration=0)
+    dict_Patterns = HS(ys, pflag=1, method='RW', w=1, iteration=0)
