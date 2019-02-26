@@ -34,10 +34,10 @@ def PB_plotting(ys, Peaks, Bottoms, savefig=False):
     ax.scatter(x=ls_peaks_time, y=Peaks.values, marker='o', color='r', alpha=0.5)
     ax.scatter(x=ls_bottoms_time, y=Bottoms.values, marker='o', color='g', alpha=0.5)
     
-    for i in ls_peaks_time:
-        ax.text(x=i, y=Peaks.loc[ls_x[i]],
-                s=ls_x[i], withdash=True,
-                )
+    # for i in ls_peaks_time:
+    #     ax.text(x=i, y=Peaks.loc[ls_x[i]],
+    #             s=ls_x[i], withdash=True,
+    #             )
     new_xticklabels = [ls_x[np.int(i)] for i in list(ax.get_xticks()) if i in ls_time_ix]
     new_xticklabels = [ls_x[0]] + new_xticklabels
     new_xticklabels.append(ls_x[-1])
@@ -211,7 +211,7 @@ def VDist(ys, xs, Adjx, Adjy):
     return VD
 
 
-def PIPs(ys, n_PIPs, type_dist, pflag=0):
+def PIPs(ys, n_PIPs, type_dist=1, pflag=0):
     """
 
     :param ys: column vector of price series with time index
@@ -297,4 +297,6 @@ if __name__ == '__main__':
     PB_plotting(ys, Peaks, Bottoms, savefig=False)
 #    Peaks, Bottoms=TP(ys, iteration=1)
 #    PB_plotting(ys, Peaks, Bottoms, savefig=False)
+
+    PIPs(ys, 5, )
 
