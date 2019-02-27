@@ -64,14 +64,30 @@ def wave_check(ys, pflag, method='RW', **kwargs):
     elif method == 'TP':
         Peaks, Bottoms = TP(ys, iteration=kwargs['iteration'])
 
-    MA = SMA(ys, w=20)['SMA']
+    MA = SMA(ys, w=5)['SMA']
     # wave_plotting(ys, Peaks, Bottoms, MA=MA)
 
-    PIPxy = PIPs(ys=ys[:100], n_PIPs=2)
-    ls_PIPx = PIPxy.index.tolist()
-    ls_PIPy = PIPxy.values.tolist()
-
-    # TODO find first wave
+    # find first wave
+    PIPxy1 = PIPs(ys, n_PIPs=3)
+    ls_PIPx1 = PIPxy1.index.tolist()
+    ls_PIPy1 = PIPxy1.values.tolist()
+    
+    ls_x = ys.index.tolist()
+    num_x = len(ls_x)
+    ls_time_ix = np.linspace(0, num_x-1, num_x)
+    ls_PIPx1_time = [ys.index.get_loc(x) for x in ls_PIPx1]
+    
+    fig, ax = plt.subplots(1, 1, figsize=(12, 8))
+    ax.plot(ls_time_ix, ys.values)
+    ax.scatter(x=ls_PIPx1_time, y=PIPxy1.values, marker='o', color='r', alpha=0.5)
+    
+    new_xticklabels = [ls_x[np.int(i)] for i in list(ax.get_xticks()) if i in ls_time_ix]
+    new_xticklabels = [ls_x[0]] + new_xticklabels
+    new_xticklabels.append(ls_x[-1])
+    ax.set_xticklabels(new_xticklabels)
+    for tick in ax.get_xticklabels():
+        tick.set_rotation(15)
+    plt.show()
 
     return signal
 
@@ -86,9 +102,14 @@ if __name__ == '__main__':
     str_Close = [i for i in ls_cols if i[-6:] == '.close'][0]
     ys = df_ys.loc[:, str_Close]
 
-    ys = ys[:250]
+    ys = ys[:40]
+    
+    
     MA = SMA(ys, w=20)['SMA']
     df_tmp = pd.DataFrame(columns=['Close', 'MA'], index=ys.index.tolist())
 
     df_tmp.loc[:, 'Close'] = ys
     df_tmp.loc[:, 'MA'] = MA
+    
+    tmp = df_tmp.dropna()
+    ys = tmp[:30]
