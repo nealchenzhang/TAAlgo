@@ -172,7 +172,7 @@ def HS(ys, pflag, method='RW', **kwargs):
     
     Pot_Normal = [1,2,1,2,1]
     Pot_Inverse = [2,1,2,1,2]
-    Pot_Index = [0]*m
+    Pot_Index = [0] * m
     
     for i in range(0, m-4):
         if PB_idx.iloc[i:i+5].values.tolist() == Pot_Normal:

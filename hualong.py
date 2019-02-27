@@ -65,29 +65,56 @@ def wave_check(ys, pflag, method='RW', **kwargs):
         Peaks, Bottoms = TP(ys, iteration=kwargs['iteration'])
 
     MA = SMA(ys, w=5)['SMA']
-    # wave_plotting(ys, Peaks, Bottoms, MA=MA)
+    wave_plotting(ys, Peaks, Bottoms, MA=MA)
 
-    # find first wave
-    PIPxy1 = PIPs(ys, n_PIPs=3)
-    ls_PIPx1 = PIPxy1.index.tolist()
-    ls_PIPy1 = PIPxy1.values.tolist()
-    
     ls_x = ys.index.tolist()
-    num_x = len(ls_x)
-    ls_time_ix = np.linspace(0, num_x-1, num_x)
-    ls_PIPx1_time = [ys.index.get_loc(x) for x in ls_PIPx1]
-    
-    fig, ax = plt.subplots(1, 1, figsize=(12, 8))
-    ax.plot(ls_time_ix, ys.values)
-    ax.scatter(x=ls_PIPx1_time, y=PIPxy1.values, marker='o', color='r', alpha=0.5)
-    
-    new_xticklabels = [ls_x[np.int(i)] for i in list(ax.get_xticks()) if i in ls_time_ix]
-    new_xticklabels = [ls_x[0]] + new_xticklabels
-    new_xticklabels.append(ls_x[-1])
-    ax.set_xticklabels(new_xticklabels)
-    for tick in ax.get_xticklabels():
-        tick.set_rotation(15)
-    plt.show()
+    ls_p = Peaks.index.tolist()
+    ls_b = Bottoms.index.tolist()
+    P_idx = [ys.index.get_loc(x) for x in ls_p]
+    B_idx = [ys.index.get_loc(x) for x in ls_b]
+
+    P_idx = pd.Series(index=ls_p, data=[1]*len(ls_p))
+    B_idx = pd.Series(index=ls_b, data=[2]*len(ls_b))
+    PB_idx = P_idx.append(B_idx)
+    PB_idx.sort_index(inplace=True)
+    m = len(PB_idx.index)
+
+    Pot_Wave_up1 = [2, 1]
+    Pot_Wave_down1 = [1, 2]
+    Pot_Index = [0] * m
+
+    for i in range(m-1, 0, -1):
+        # print(i)
+        if PB_idx.iloc[i-1: i+1].values.tolist() == Pot_Wave_up1:
+            Pot_Index[i + 4] = 1
+        elif PB_idx.iloc[i:i + 5].values.tolist() == Pot_Wave_down1:
+            Pot_Index[i + 4] = 2
+
+    PNidx = [i for i, x in enumerate(Pot_Index) if x == 1]
+    PIidx = [i for i, x in enumerate(Pot_Index) if x == 2]
+
+    # PIP method
+    # find first wave
+    # PIPxy1 = PIPs(ys, n_PIPs=3)
+    # ls_PIPx1 = PIPxy1.index.tolist()
+    # ls_PIPy1 = PIPxy1.values.tolist()
+    #
+    # ls_x = ys.index.tolist()
+    # num_x = len(ls_x)
+    # ls_time_ix = np.linspace(0, num_x-1, num_x)
+    # ls_PIPx1_time = [ys.index.get_loc(x) for x in ls_PIPx1]
+    #
+    # fig, ax = plt.subplots(1, 1, figsize=(12, 8))
+    # ax.plot(ls_time_ix, ys.values)
+    # ax.scatter(x=ls_PIPx1_time, y=PIPxy1.values, marker='o', color='r', alpha=0.5)
+    #
+    # new_xticklabels = [ls_x[np.int(i)] for i in list(ax.get_xticks()) if i in ls_time_ix]
+    # new_xticklabels = [ls_x[0]] + new_xticklabels
+    # new_xticklabels.append(ls_x[-1])
+    # ax.set_xticklabels(new_xticklabels)
+    # for tick in ax.get_xticklabels():
+    #     tick.set_rotation(15)
+    # plt.show()
 
     return signal
 
