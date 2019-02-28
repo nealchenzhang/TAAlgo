@@ -84,14 +84,24 @@ def wave_check(ys, pflag, method='RW', **kwargs):
     Pot_Index = [0] * m
 
     for i in range(m-1, 0, -1):
-        # print(i)
+        print(i)
         if PB_idx.iloc[i-1: i+1].values.tolist() == Pot_Wave_up1:
-            Pot_Index[i + 4] = 1
-        elif PB_idx.iloc[i:i + 5].values.tolist() == Pot_Wave_down1:
-            Pot_Index[i + 4] = 2
+            Pot_Index[i-1] = 1
+        elif PB_idx.iloc[i-1: i+1].values.tolist() == Pot_Wave_down1:
+            Pot_Index[i-1] = 2
 
     PNidx = [i for i, x in enumerate(Pot_Index) if x == 1]
     PIidx = [i for i, x in enumerate(Pot_Index) if x == 2]
+
+    Wave_up = ys.loc[(PB_idx.iloc[PNidx[-1]:PNidx[-1]+2]).index.tolist()].copy()
+    Wave_down = ys.loc[(PB_idx.iloc[PIidx[-1]:PIidx[-1]+2]).index.tolist()].copy()
+
+    dict_results = {
+        'Up': Wave_up,
+        'Down': Wave_down
+    }
+
+    return dict_results
 
     # PIP method
     # find first wave
