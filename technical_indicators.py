@@ -137,6 +137,26 @@ def MACD(ys, ws=12, wl=26, wsignal=9):
     return dict_results
 
 
+def MACD_adj(ys, ws=12, wl=26, wsignal=9):
+    MACD = EWMA(ys, ws)['EWMA'] - EWMA(ys, wl)['EWMA']
+    SL = EWMA(MACD, wsignal)['EWMA']
+
+    if SL > 0 and (MACD[-1] > SL[-1] and MACD[-2] < SL[-2]):
+        signal = 1
+    elif SL < 0 and (MACD[-1] < SL[-1] and MACD[-2] > SL[-2]):
+        signal = -1
+    else:
+        signal = 0
+
+    dict_results = {
+        'MACD': MACD,
+        'SL': SL,
+        'signal': signal
+    }
+
+    return dict_results
+
+
 if __name__ == '__main__':
     df_ys = pd.read_csv('./Data/ru_i_15min.csv')
     df_ys.datetime = df_ys.datetime.apply(pd.to_datetime)
@@ -146,5 +166,10 @@ if __name__ == '__main__':
     str_Close = [i for i in ls_cols if i[-6:] == '.close'][0]
     ys = df_ys.loc[:, str_Close]
 
+    ys = ys[:300]
+    dict_results = MACD(ys)
 
+    macd, macdsignal, macdhist = talib.MACD(ys, fastperiod=12, slowperiod=26, signalperiod=9)
 
+    x = macd - dict_results['MACD']
+    y = dict_results['MACD']
