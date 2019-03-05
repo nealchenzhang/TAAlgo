@@ -119,7 +119,11 @@ def MAC(ys, ws, wl, method='SMA'):
 
 def MACD(ys, ws=12, wl=26, wsignal=9):
     MACD = EWMA(ys, ws)['EWMA'] - EWMA(ys, wl)['EWMA']
-    SL = EWMA(MACD, wsignal)['EWMA']
+    y = MACD.dropna()
+
+    signalline = EWMA(y, wsignal)['EWMA']
+    SL = pd.Series(np.nan, index=ys.index.tolist())
+    SL[signalline.index.tolist()] = signalline
 
     if MACD[-1] > SL[-1] and MACD[-2] < SL[-2]:
         signal = 1
@@ -139,11 +143,15 @@ def MACD(ys, ws=12, wl=26, wsignal=9):
 
 def MACD_adj(ys, ws=12, wl=26, wsignal=9):
     MACD = EWMA(ys, ws)['EWMA'] - EWMA(ys, wl)['EWMA']
-    SL = EWMA(MACD, wsignal)['EWMA']
+    y = MACD.dropna()
 
-    if SL > 0 and (MACD[-1] > SL[-1] and MACD[-2] < SL[-2]):
+    signalline = EWMA(y, wsignal)['EWMA']
+    SL = pd.Series(np.nan, index=ys.index.tolist())
+    SL[signalline.index.tolist()] = signalline
+
+    if SL[-1] > 0 and (MACD[-1] > SL[-1] and MACD[-2] < SL[-2]):
         signal = 1
-    elif SL < 0 and (MACD[-1] < SL[-1] and MACD[-2] > SL[-2]):
+    elif SL[-1] < 0 and (MACD[-1] < SL[-1] and MACD[-2] > SL[-2]):
         signal = -1
     else:
         signal = 0
@@ -158,6 +166,7 @@ def MACD_adj(ys, ws=12, wl=26, wsignal=9):
 
 
 if __name__ == '__main__':
+    import talib
     df_ys = pd.read_csv('./Data/ru_i_15min.csv')
     df_ys.datetime = df_ys.datetime.apply(pd.to_datetime)
     df_ys.datetime = df_ys.datetime.apply(lambda x: str(x))
@@ -167,9 +176,12 @@ if __name__ == '__main__':
     ys = df_ys.loc[:, str_Close]
 
     ys = ys[:300]
-    dict_results = MACD(ys)
+    results = MACD(ys)
 
     macd, macdsignal, macdhist = talib.MACD(ys, fastperiod=12, slowperiod=26, signalperiod=9)
 
-    x = macd - dict_results['MACD']
-    y = dict_results['MACD']
+    x = macd - results['MACD']
+    y = results['MACD']
+
+    y.plot()
+
