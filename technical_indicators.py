@@ -165,6 +165,10 @@ def MACD_adj(ys, ws=12, wl=26, wsignal=9):
     return dict_results
 
 
+###############################################################################
+# Relative Strength Index
+###############################################################################
+
 if __name__ == '__main__':
     import talib
     df_ys = pd.read_csv('./Data/ru_i_15min.csv')
