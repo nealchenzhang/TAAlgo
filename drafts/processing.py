@@ -293,3 +293,9 @@ if __name__ == '__main__':
     # PIPs(ys, 6, type_dist=1, pflag=1)
     peaks, bottoms=TP(ys, iteration=1, pflag=1)
 
+
+dif = ys - ys.shift(1)
+diff = dif.copy()
+dif2  = dif.copy()
+diff[dif<0] = 0
+dif2[dif>0] = 0
