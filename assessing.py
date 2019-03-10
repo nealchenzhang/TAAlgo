@@ -60,5 +60,7 @@ def Bernoulli_trials(p, N):
     z-stat = (x-p*N) / (N*p*(1-p))**(1/2)
 
 def Bootstrap_Approach():
+
+    return None
     
 # Assessing the Performance of Predicting Returns    
