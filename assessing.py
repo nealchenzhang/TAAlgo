@@ -5,6 +5,10 @@ Created on Tue Feb 12 15:41:25 2019
 @author: chen zhang
 """
 
+import numpy as np
+import pandas as pd
+from scipy import stats
+
 # Holding Periods
 # Price target
 # Predefined time limit
@@ -17,17 +21,18 @@ Created on Tue Feb 12 15:41:25 2019
 
 
 # Assessing the Performance of Trading Signals
-def pair_tests(h, rtn_type='log'):
+def pair_tests(ys, h, signal, rtn_type='log'):
     """
     
+    :param ys: original data Series
     :param h: predefined fixed holding periods
+    :param signal: signal Series generated with time index
     :param rtn_type: definition of return types
                     'log': logarithmic returns
                     'mean': arithmetic returns
     :return:
     """
-    ys
-    ys.shift(h)
+    rtn = (ys.shift(h) / ys).apply(np.log)
 
     # TODO: refer to null hypothesis test
     print('# 2. Population Correlation Coefficient Test')
@@ -64,3 +69,16 @@ def Bootstrap_Approach():
     return None
     
 # Assessing the Performance of Predicting Returns    
+    
+if __name__ == '__main__':
+    
+    df_ys = pd.read_csv('./Data/ru_i_15min.csv')
+#    df_ys = pd.read_csv('./Data/IF1903_1min.csv')
+    df_ys.datetime = df_ys.datetime.apply(pd.to_datetime)
+    df_ys.datetime = df_ys.datetime.apply(lambda x: str(x))
+    df_ys.set_index('datetime', inplace=True)
+    ls_cols = df_ys.columns.tolist()
+    str_Close = [i for i in ls_cols if i[-6:] == '.close'][0]
+    ys = df_ys.loc[:, str_Close]
+
+    ys = ys[-300:]

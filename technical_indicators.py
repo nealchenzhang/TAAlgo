@@ -218,13 +218,18 @@ def BB(ys, w=20, k=2):
 
     BB_up = BB_mid + k * sigma
     BB_low = BB_mid - k * sigma
-
-    if ys[-2] > BB_up[-2] and ys[-1] < BB_up[-1]:
-        signal = -1
-    elif ys[-2] < BB_low[-2] and ys[-1] > BB_low[-1]:
-        signal = 1
-    else:
-        signal = 0
+    
+    ls_ix = ys.index.tolist()
+    
+    signal = pd.Series(data=np.nan, index=ls_ix)
+    
+    for i in range(w-1, len(ls_ix)-1):
+        if (ys.iloc[i] > BB_up.loc[ls_ix[i]] and ys.iloc[i+1] < BB_up.loc[ls_ix[i+1]]):
+            signal.loc[ls_ix[i+1]] = -1
+        elif (ys.iloc[i] < BB_low.loc[ls_ix[i]] and ys.iloc[i+1] > BB_low.loc[ls_ix[i+1]]):
+            signal.loc[ls_ix[i+1]] = 1
+        else:
+            signal.loc[ls_ix[i+1]] = 0
 
     dict_results = {
         'Mid': BB_mid,
