@@ -22,7 +22,7 @@ from scipy import stats
 # Assessing the Performance of Trading Signals
 
 
-def pair_tests(ys, signal, h=5, rtn_type='log'):
+def pair_test(ys, signal, h=5, rtn_type='log'):
     """
     
     :param ys: original data Series
@@ -82,7 +82,7 @@ def Bernoulli_trials(x, N, p=0.5):
     """
 #    mean: p*N
 #    sigma: (N*p*(1-p))**(1/2)
-    z-stat = (x-p*N) / (N*p*(1-p))**(1/2)
+    z_stat = (x-p*N) / (N*p*(1-p))**(1/2)
     
     print('Null Hypothesis: x = p*N')
     print('Alternative Hypothesis: x < p*N')
@@ -90,10 +90,10 @@ def Bernoulli_trials(x, N, p=0.5):
     # Critical z-value: one-tailed
     one_tailed_alpha = [0.1, 0.05, 0.01]
     print('-' * 40)
-    print('Calculated z_stats is {}.'.format(z-stat))
+    print('Calculated z_stats is {}.'.format(z_stat))
     for alpha in one_tailed_alpha:
         c_t = stats.norm.ppf(1 - alpha)
-        if t_stat > c_t:
+        if z_stat > c_t:
             print('Reject the null hypothesis at the {:.2%} level of significance'.format(alpha))
             print('Good to go with the strategy.')
             return 1
@@ -107,7 +107,8 @@ def Bootstrap_Approach():
     return None
     
 # Assessing the Performance of Predicting Returns    
-    
+
+
 if __name__ == '__main__':
     
     df_ys = pd.read_csv('./Data/ru_i_15min.csv')
