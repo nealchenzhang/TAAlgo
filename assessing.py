@@ -16,7 +16,12 @@ from scipy import stats
 
 # Passive or fixed time periods
 
+
+# TODO: check the normality of rtn
+
 # Assessing the Performance of Trading Signals
+
+
 def pair_tests(ys, signal, h=5, rtn_type='log'):
     """
     
@@ -33,7 +38,6 @@ def pair_tests(ys, signal, h=5, rtn_type='log'):
     ls_ix_signal_nan = [i for i in ls_ix_signal if i not in signal.dropna().index.tolist()]
     rtn = (ys.shift(h) / ys).apply(np.log)
     rtn.loc[ls_ix_signal_nan] = np.nan
-    # TODO: check the normality of rtn
 
     rtn_signal = rtn.copy()
     rtn_signal.loc[signal.where(signal == 0).dropna().index.tolist()] = np.nan
@@ -48,11 +52,11 @@ def pair_tests(ys, signal, h=5, rtn_type='log'):
     mean_signal, mean_market = rtn_signal.mean(), rtn.mean()
     std_signal, std_market = rtn_signal.std(ddof=1), rtn.std(ddof=1)
     n_signal, n_market = rtn_signal.size, rtn.size
-    se_signal, se_market = std_signal / np.sqrt(n_signal), std_market / np.sqrt(n_market)
-
-    sed = np.sqrt(se_signal ** 2 + se_market ** 2)
     df = n_signal + n_market - 2
-    t_stat = (mean_signal - mean_market) / sed
+
+    sed = np.sqrt(((n_signal-1)*std_signal**2 + (n_market-1)*std_market**2)/df)
+    
+    t_stat = (mean_signal - mean_market) / (sed * np.sqrt(1/n_signal + 1/n_market))
 
     # Critical t-value: one-tailed
     one_tailed_alpha = [0.1, 0.05, 0.01]
@@ -68,16 +72,35 @@ def pair_tests(ys, signal, h=5, rtn_type='log'):
 
     return h
 
-# TODO: Bernoulli trials
-def Bernoulli_trials(p, N):
+
+def Bernoulli_trials(x, N, p=0.5):
     """
     p: probability of success: 50%
-    N: number of trials
-    x: number of successful cases
+    N: number of trials (different assets)
+    x: number of successful cases 
+        (where trading rule generates positive profits)
     """
-    mean: p*N
-    sigma: (N*p*(1-p))**(1/2)
+#    mean: p*N
+#    sigma: (N*p*(1-p))**(1/2)
     z-stat = (x-p*N) / (N*p*(1-p))**(1/2)
+    
+    print('Null Hypothesis: x = p*N')
+    print('Alternative Hypothesis: x < p*N')
+        
+    # Critical z-value: one-tailed
+    one_tailed_alpha = [0.1, 0.05, 0.01]
+    print('-' * 40)
+    print('Calculated z_stats is {}.'.format(z-stat))
+    for alpha in one_tailed_alpha:
+        c_t = stats.norm.ppf(1 - alpha)
+        if t_stat > c_t:
+            print('Reject the null hypothesis at the {:.2%} level of significance'.format(alpha))
+            print('Good to go with the strategy.')
+            return 1
+        else:
+            print('We failed to reject the null hypothesis at the {:.2%} level of significance'.format(alpha))
+            return 0
+    
 
 def Bootstrap_Approach():
 
