@@ -100,11 +100,37 @@ def Bernoulli_trials(x, N, p=0.5):
         else:
             print('We failed to reject the null hypothesis at the {:.2%} level of significance'.format(alpha))
             return 0
-    
 
-def Bootstrap_Approach():
 
-    return None
+def Bootstrap_Approach(ys):
+    log_return = (ys / ys.shift(1)).apply(np.log)
+    mean = log_return.mean()
+    std_dev = log_return.std()
+
+    # Calculate sample bias-corrected skewness
+    N = log_return.size
+    g1 = (((log_return - mean) ** 3).sum() / N) / ((((log_return - mean) ** 2).sum() / N) ** 3 / 2)
+    G1 = (N * (N - 1)) ** 0.5 * g1 / (N - 2)
+    # Significance test of skewness
+    SES = (6*N*(N-1))**0.5
+
+    dict_stats = {
+        'Mean': mean,
+        'Std': std_dev,
+        'Skewness': {
+            'value': None,
+            'significance': None
+        },
+        'Kurtosis': {
+            'value': None,
+            'significance': None
+
+        },
+        'KS_stat': {
+            'value': None,
+            'significance': None
+        }
+    }
     
 # Assessing the Performance of Predicting Returns    
 
@@ -122,5 +148,3 @@ if __name__ == '__main__':
 
     ys = ys[-300:]
 
-    from technical_indicators import BB
-    signal = BB(ys)['signal']

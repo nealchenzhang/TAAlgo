@@ -30,7 +30,6 @@ def SMA(ys, w=5):
     signal = pd.Series(data=np.nan, index=ls_ix)
     
     for i in range(w, len(ls_ix)-1):
-#        print(i)
         if ys.iloc[i] < MA.iloc[i] and ys.iloc[i+1] > MA.iloc[i+1]:
             signal.loc[ls_ix[i+1]] = 1
         elif ys.iloc[i] > MA.iloc[i] and ys.iloc[i+1] < MA.iloc[i+1]:
