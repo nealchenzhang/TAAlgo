@@ -33,7 +33,6 @@ def pair_test(ys, signal, h=5, rtn_type='log'):
                     'mean': arithmetic returns
     :return: h
     """
-    ls_ix = ys.index.tolist()
     ls_ix_signal = signal.index.tolist()
     ls_ix_signal_nan = [i for i in ls_ix_signal if i not in signal.dropna().index.tolist()]
     rtn = (ys.shift(h) / ys).apply(np.log)
@@ -96,10 +95,8 @@ def Bernoulli_trials(x, N, p=0.5):
         if z_stat > c_t:
             print('Reject the null hypothesis at the {:.2%} level of significance'.format(alpha))
             print('Good to go with the strategy.')
-            return 1
         else:
             print('We failed to reject the null hypothesis at the {:.2%} level of significance'.format(alpha))
-            return 0
 
 
 def Bootstrap_Approach(ys):
@@ -112,25 +109,72 @@ def Bootstrap_Approach(ys):
     g1 = (((log_return - mean) ** 3).sum() / N) / ((((log_return - mean) ** 2).sum() / N) ** 3 / 2)
     G1 = (N * (N - 1)) ** 0.5 * g1 / (N - 2)
     # Significance test of skewness
-    SES = (6*N*(N-1))**0.5
+    SES = (6*N*(N-1) / ((N-2)*(N+1)*(N+3)))**0.5
+    # H0: G1 = 0
+    # H1: G1 != 0
+    ZG1 = G1 / SES
+    
+    print('Null Hypothesis: G1 = 0')
+    print('Alternative Hypothesis: G1 != 0')
+        
+    # Critical z-value: two-tailed
+    two_tailed_alpha = [0.05, 0.01]
+    print('-' * 40)
+    print('Calculated z_stats is {}.'.format(ZG1))
+    skewness_significance = 0
+    for alpha in two_tailed_alpha:
+        c_t = stats.norm.ppf(1 - alpha / 2)
+        if ZG1 > c_t:
+            print('Reject the null hypothesis at the {:.2%} level of significance'.format(alpha))
+            skewness_significance = alpha
+        else:
+            print('We failed to reject the null hypothesis at the {:.2%} level of significance'.format(alpha))
+    
+    # Calculate sample bias-corrected kurtosis
+    N = log_return.size
+    g2 = (((log_return - mean) ** 4).sum() / N) / ((((log_return - mean) ** 2).sum() / N) ** 2)
+    G2 = (N - 1)/((N-2)*(N-3)) *((N+1)*g2-3(N-1))+3
+    # Significance test of kurtosis
+    SEK = 2*SES*((N**2-1)/((N-3)*(N+5)))**0.5
+    # H0: G2 = 3
+    # H1: G2 != 3
+    ZG2 = G2 / SEK
+    
+    print('Null Hypothesis: G2 = 3')
+    print('Alternative Hypothesis: G2 != 3')
+        
+    # Critical z-value: two-tailed
+    two_tailed_alpha = [0.05, 0.01]
+    print('-' * 40)
+    print('Calculated z_stats is {}.'.format(ZG2))
+    kurtosis_significance = 0
+    for alpha in two_tailed_alpha:
+        c_t = stats.norm.ppf(1 - alpha / 2)
+        if ZG2 > c_t:
+            print('Reject the null hypothesis at the {:.2%} level of significance'.format(alpha))
+            kurtosis_significance = alpha
+        else:
+            print('We failed to reject the null hypothesis at the {:.2%} level of significance'.format(alpha))
+
 
     dict_stats = {
         'Mean': mean,
         'Std': std_dev,
         'Skewness': {
-            'value': None,
-            'significance': None
+            'value': G1,
+            'significance': skewness_significance
         },
         'Kurtosis': {
-            'value': None,
-            'significance': None
-
+            'value': G2,
+            'significance': kurtosis_significance
         },
         'KS_stat': {
             'value': None,
             'significance': None
         }
     }
+        
+    return dict_stats
     
 # Assessing the Performance of Predicting Returns    
 
