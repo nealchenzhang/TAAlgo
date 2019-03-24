@@ -22,12 +22,12 @@ from scipy import stats
 # Assessing the Performance of Trading Signals
 
 
-def pair_test(ys, signal, h=5, rtn_type='log'):
+def pair_test(ys, signal, hp=5, rtn_type='log'):
     """
     
     :param ys: original data Series
     :param signal: signal Series generated with time index
-    :param h: predefined fixed holding periods
+    :param hp: predefined fixed holding periods
     :param rtn_type: definition of return types
                     'log': logarithmic returns
                     'mean': arithmetic returns
@@ -35,7 +35,7 @@ def pair_test(ys, signal, h=5, rtn_type='log'):
     """
     ls_ix_signal = signal.index.tolist()
     ls_ix_signal_nan = [i for i in ls_ix_signal if i not in signal.dropna().index.tolist()]
-    rtn = (ys.shift(h) / ys).apply(np.log)
+    rtn = (ys.shift(hp) / ys).apply(np.log)
     rtn.loc[ls_ix_signal_nan] = np.nan
 
     rtn_signal = rtn.copy()
@@ -69,7 +69,7 @@ def pair_test(ys, signal, h=5, rtn_type='log'):
         else:
             print('We failed to reject the null hypothesis at the {:.2%} level of significance'.format(alpha))
 
-    return h
+    return hp
 
 
 def Bernoulli_trials(x, N, p=0.5):

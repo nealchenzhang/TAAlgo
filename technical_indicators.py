@@ -114,9 +114,9 @@ def MAC(ys, ws, wl, method='SMA'):
     signal = pd.Series(data=np.nan, index=ls_ix)
     
     for i in range(wl, len(ls_ix)-1):
-        if MAC.iloc[i] < 0 and MAC.iloc[i+1] > 0:
+        if MAC.iloc[i] < 0 < MAC.iloc[i+1]:
             signal.loc[ls_ix[i+1]] = 1
-        elif MAC.iloc[i] > 0 and MAC.iloc[i+1] < 0:
+        elif MAC.iloc[i+1] < 0 < MAC.iloc[i]:
             signal.loc[ls_ix[i+1]] = -1
         else:
             signal.loc[ls_ix[i+1]] = 0
