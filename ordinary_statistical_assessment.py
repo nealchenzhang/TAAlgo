@@ -32,44 +32,37 @@ def ordinary_statistical_assessment(dict_results, HP=5):
             start_ix = np.int(ix)
             break
 
-    buy_signal = signal.where(signal == 1).dropna()
-    sell_signal = signal.where(signal == -1).dropna()
-    buy_signal_idx = buy_signal.index.tolist()
-    sell_signal_idx = sell_signal.index.tolist()
+    buy_signal = signal.where(signal == 1)
+    sell_signal = signal.where(signal == -1)
+    buy_signal_idx = buy_signal.dropna().index.tolist()
+    sell_signal_idx = sell_signal.dropna().index.tolist()
 
-    ls_buy_time = [signal.index.get_loc(x) for x in buy_signal_idx]
-    ls_sell_time = [signal.index.get_loc(x) for x in sell_signal_idx]
+    # ls_buy_time = [signal.index.get_loc(x) for x in buy_signal_idx]
+    # ls_sell_time = [signal.index.get_loc(x) for x in sell_signal_idx]
+    buy_signal.fillna(0, inplace=True)
+    sell_signal.fillna(0, inplace=True)
+    cum_buy = buy_signal.cumsum()
+    cum_sell = sell_signal.cumsum()
+    cum_pos = cum_buy + cum_sell
 
-    close_HP = -signal.shift(HP)
+    # for t in range(start_ix, num_x):
+    #     if (signal[t-HP] == 1 or -1) and all(signal[t-HP+1:t]==0):
+    #         close_HP[t] = -signal[t-HP]
+    #     if (signal[t-HP] == 1 or -1) and (-signal[t] in list(signal[t-HP+1:t])):
+    #         close_HP[t] = -signal[t]
 
-    position = pd.Series(data=np.nan, index=ls_x)
-    position[start_ix-1] = 0
-    pos_chg = pd.Series(data=0, index=ls_x)
-    
-    for t in range(start_ix, num_x):
-#        if i >= start_ix + HP:
-##            if (position[i - 1]*close_HP[i]) >= 0 or signal[i] == close_HP[i]:
-##                close_HP[i] = 0
-#        else:
-#            close_HP[i] = 0
-#       
-        if t <= start_ix + HP:
-            close_HP[t] = 0
-        
-#        
-#        if (signal[t-HP] == 1 or -1) and all(signal[t-HP+1:t]==0):
-#            close_HP[t] = -signal[t-HP]
-#        if (signal[t-HP] == 1 or -1) and (-signal[t] in list(signal[t-HP+1:t])):
-#            close_HP[t] = -signal[t]
 
-        
-        pos_chg[t] = signal[t] + close_HP[t]
-        position[t] = position[t-1] + pos_chg[t]
-    x = pd.DataFrame(columns=['signal', 'close_HP', 'pos_chg', 'position'])
+
+    x = pd.DataFrame(columns=['signal', 'long', 'short', 'cum_long', 'cum_short', 'cum_pos'])
     x['signal'] = signal
-    x['close_HP'] = close_HP
-    x['pos_chg'] = pos_chg
-    x['position'] = position
+    x['long'] = buy_signal
+    x['short'] = sell_signal
+    x['cum_long'] = buy_signal.cumsum()
+    x['cum_short'] = sell_signal.cumsum()
+    x['cum_pos'] = cum_pos
+
+    signal[:20] = [0, 0, 1, -1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, -1, 0, 0, 0, 0]
+
     # Rtn_long = 0
     # Rtn_short = 0
     # Rtn__sell = 0
