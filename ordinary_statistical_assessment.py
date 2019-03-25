@@ -40,23 +40,36 @@ def ordinary_statistical_assessment(dict_results, HP=5):
     ls_buy_time = [signal.index.get_loc(x) for x in buy_signal_idx]
     ls_sell_time = [signal.index.get_loc(x) for x in sell_signal_idx]
 
-    close = -signal.shift(HP)
+    close_HP = -signal.shift(HP)
 
-    # position = pd.Series(data=np.nan, index=ls_x)
-    # position[start_ix-1] = 0
-    # pos_chg = 0
-    #
-    # for i in range(start_ix, num_x):
-    #     if i >= start_ix + HP:
-    #         if position[i - 1] == 0:
-    #             close[i] = 0
-    #     else:
-    #         close[i] = 0
-    #     pos_chg = signal[i] + close[i]
-    #     # print(pos_chg)
-    #     position[i] = position[i-1] + pos_chg
-    #     # print(position[i-1])
-    #
+    position = pd.Series(data=np.nan, index=ls_x)
+    position[start_ix-1] = 0
+    pos_chg = pd.Series(data=0, index=ls_x)
+    
+    for t in range(start_ix, num_x):
+#        if i >= start_ix + HP:
+##            if (position[i - 1]*close_HP[i]) >= 0 or signal[i] == close_HP[i]:
+##                close_HP[i] = 0
+#        else:
+#            close_HP[i] = 0
+#       
+        if t <= start_ix + HP:
+            close_HP[t] = 0
+        
+#        
+#        if (signal[t-HP] == 1 or -1) and all(signal[t-HP+1:t]==0):
+#            close_HP[t] = -signal[t-HP]
+#        if (signal[t-HP] == 1 or -1) and (-signal[t] in list(signal[t-HP+1:t])):
+#            close_HP[t] = -signal[t]
+
+        
+        pos_chg[t] = signal[t] + close_HP[t]
+        position[t] = position[t-1] + pos_chg[t]
+    x = pd.DataFrame(columns=['signal', 'close_HP', 'pos_chg', 'position'])
+    x['signal'] = signal
+    x['close_HP'] = close_HP
+    x['pos_chg'] = pos_chg
+    x['position'] = position
     # Rtn_long = 0
     # Rtn_short = 0
     # Rtn__sell = 0
