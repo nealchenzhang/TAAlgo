@@ -31,42 +31,32 @@ def ordinary_statistical_assessment(dict_results, HP=5):
         if signal[np.int(ix)] == 1 or signal[np.int(ix)] == -1:
             start_ix = np.int(ix)
             break
-    
+
     open_signal = pd.Series(data=0, index=ls_x)
     close_signal = pd.Series(data=0, index=ls_x)
     position = pd.Series(data=0, index=ls_x)
     pos_chg = pd.Series(data=0, index=ls_x)
-    position[start_ix] = pos_chg[start_ix] = signal[start_ix]
-   
-    for t in range(start_ix+HP, num_x):
-        if (signal[t-HP] == -1 or 1) and all(signal[t-HP+1:t+1]==0):
-            close_signal[t] = -signal[t-HP]
-        elif -signal[t-HP] in signal[t-HP+1:t+1]:
-            close_signal[t] = -signal[t-HP]
+    position[start_ix] = open_signal[start_ix] = signal[start_ix]
+    ls_open_ix = []
 
-    pos_chg = signal + close_signal
-    position = pos_chg.cumsum()
-    
     for t in range(start_ix, num_x):
-        if np.abs(position[t]) >= np.abs(position[t-1]):
-            if np.abs(pos_chg[t]) > signal[t] == 0:
-                print(t)
-                pos_chg[t] = 0
-    position = pos_chg.cumsum()
-    
-#    TODO:
-    ##########################
-#    for t in range(start_ix, num_x):
-#        if np.abs(position[t]) > np.abs(position[t-1]):
-#            open_signal[t] = signal[t]
-#            close_signal[t] = 0
-#        elif np.abs(position[t]) < np.abs(position[t-1]):
-#            open_signal[t] = 0
-#            close_signal[t] = pos_chg[t]
-#    
-#    pos_chg_1 = open_signal + close_signal
-#    position_1 = pos_chg_1.cumsum()
-    ##########################
+        if np.abs(position[t-1] + signal[t]) > np.abs(position[t-1]):
+            # Open
+            open_signal[t] = signal[t]
+            ls_open_ix.append(t)
+        elif np.abs(position[t-1] + signal[t]) < np.abs(position[t-1]):
+            # Close
+            close_signal[t] = -open_signal[ls_open_ix[0]]
+            ls_open_ix = ls_open_ix[1:]
+        if len(ls_open_ix) != 0 and t == ls_open_ix[0] + HP:
+            # Close HP
+            close_signal[t] = -open_signal[ls_open_ix[0]]
+            ls_open_ix = ls_open_ix[1:]
+
+        pos_chg[t] = open_signal[t] + close_signal[t]
+        position[t] = pos_chg[t] + position[t-1]
+
+    ##################################################################################
     x = pd.DataFrame(columns=['signal','open'])
     x['signal'] = signal
     x['open'] = open_signal
@@ -78,9 +68,6 @@ def ordinary_statistical_assessment(dict_results, HP=5):
     x['ps'] = position
     x = x.reset_index()
     
-
-    signal[:20] = [0, 0, 1, -1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, -1, 0, 0, 0, 0]
-
     # Rtn_long = 0
     # Rtn_short = 0
     # Rtn__sell = 0
