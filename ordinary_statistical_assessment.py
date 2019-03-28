@@ -67,14 +67,24 @@ def ordinary_statistical_assessment(dict_results, HP=5):
 #    x['position_1'] = position_1
     x['ps'] = position
     x = x.reset_index()
+    x['rtn'] = (ys / ys.shift(1)).apply(np.log)
+    ####################################################################################
+    N_buy_signal = signal.where(signal > 0).count()
+    N_sell_signal = signal.where(signal < 0).count()
+    N_long = position.where(position > 0).count()
+    N_short = position.where(position < 0).count()
+    log_return = (ys / ys.shift(1)).apply(np.log)
+    Rtn_long = log_return.loc[position.where(position > 0).dropna().index.tolist()].mean()
+    Rtn_short = log_return.loc[position.where(position < 0).dropna().index.tolist()].mean()
+    Rtn_LS = (N_long * Rtn_long - N_short * Rtn_short) / (N_long + N_short)
     
-    # Rtn_long = 0
-    # Rtn_short = 0
-    # Rtn__sell = 0
-    #
-    # N_long = position.where(position > 0).count()
-    # N_short = position.where(position < 0).count()
-
+    dict_assessment = {
+            'N_buy': N_buy_signal,
+            'N_sell': N_sell_signal,
+            'N_long_days': N_long,
+            'N_short_days': N_short,
+            
+            }
 
     return None
 
