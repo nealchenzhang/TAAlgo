@@ -90,20 +90,10 @@ def ordinary_statistical_assessment(dict_results, HP=5):
 
         pos_chg[t] = open_signal[t] + close_signal[t]
         position[t] = pos_chg[t] + position[t-1]
-
+    
     ##################################################################################
-    x = pd.DataFrame(columns=['signal','open'])
-    x['signal'] = signal
-    x['open'] = open_signal
-    x['close'] = close_signal
-    x['pos_chg'] = pos_chg
-#    x['position_0'] = position_0
-#    x['pos_chg_1'] = pos_chg_1
-#    x['position_1'] = position_1
-    x['ps'] = position
-    x = x.reset_index()
-    x['rtn'] = (ys / ys.shift(1)).apply(np.log)
-    ####################################################################################
+    position = position.shift(1) #持仓的时间为下一根K线
+
     N_buy_signal = signal.where(signal > 0).count()
     N_sell_signal = signal.where(signal < 0).count()
     N_long = position.where(position > 0).count()
@@ -126,10 +116,27 @@ def ordinary_statistical_assessment(dict_results, HP=5):
             'N_sell': N_sell_signal,
             'N_long_days': N_long,
             'N_short_days': N_short,
+            'Buy_rtn': Rtn_long_mean,
+            'Sell_rtn': Rtn_short_mean,
+            'B-S_rtn': Rtn_LS_mean,
+            'p_value_buy': p_value_buy,
+            'p_value_sell': p_value_sell,
+            'p_value_buysell': p_value_BS
             
             }
+    
+    ##################################################################################
+    x = pd.DataFrame(columns=['signal','open'])
+    x['signal'] = signal
+    x['open'] = open_signal
+    x['close'] = close_signal
+    x['pos_chg'] = pos_chg
+    x['ps'] = position
+    x['rtn'] = log_return
+    x = x.reset_index()
+    ####################################################################################
 
-    return None
+    return dict_assessment
 
 
 if __name__ == '__main__':
