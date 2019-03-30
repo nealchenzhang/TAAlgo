@@ -182,9 +182,15 @@ def MACD_adj(ys, ws=12, wl=26, wsignal=9):
         else:
             signal.loc[ls_ix[i+1]] = 0
 
+    MACD = MACD.apply(lambda x: round(x, 2))
+    SL = SL.apply(lambda x: round(x, 2))
+
+    HIST = MACD - SL
+
     dict_results = {
         'MACD': MACD,
         'SL': SL,
+        'HIST': HIST,
         'signal': signal
     }
 
