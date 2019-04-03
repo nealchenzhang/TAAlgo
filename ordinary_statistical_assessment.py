@@ -14,6 +14,8 @@ from scipy import stats
 
 from technical_indicators import SMA
 
+from assessing import Bernoulli_trials
+
 strategy = SMA
 dict_results = strategy(ys, w=5)
 
@@ -135,6 +137,15 @@ def ordinary_statistical_assessment(dict_results, HP=5):
     x['rtn'] = log_return
     x = x.reset_index()
     ####################################################################################
+
+    # Bernoulli trials for each day when a position is opened
+    tmp_pos = (position.where(position != 0).dropna())
+    tmp_rtn = log_return.loc[tmp_pos.index.tolist()]
+    tmp = tmp_pos * tmp_rtn
+    right_open_cases = tmp.where(tmp > 0).dropna().count()
+    all_open_cases = tmp.count()
+    probability = right_open_cases / all_open_cases
+    Bernoulli_trials(x=right_open_cases, N=all_open_cases)
 
     return dict_assessment
 
