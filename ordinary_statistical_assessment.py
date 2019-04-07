@@ -160,6 +160,5 @@ if __name__ == '__main__':
     str_Close = [i for i in ls_cols if i[-6:] == '.close'][0]
     ys = df_ys.loc[:, str_Close]
 
-
     ys = ys[-300:]
 
