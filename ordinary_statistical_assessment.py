@@ -12,12 +12,7 @@ import matplotlib.pyplot as plt
 
 from scipy import stats
 
-from technical_indicators import SMA
-
 from assessing import Bernoulli_trials
-
-strategy = SMA
-dict_results = strategy(ys, w=5)
 
 
 def pair_test_of_signal(rtn_signal, rtn, **kwargs):
@@ -94,7 +89,7 @@ def ordinary_statistical_assessment(dict_results, HP=5):
         position[t] = pos_chg[t] + position[t-1]
     
     ##################################################################################
-    position = position.shift(1) #持仓的时间为下一根K线
+    position = position.shift(1)  # 持仓的时间为下一根K线
 
     N_buy_signal = signal.where(signal > 0).count()
     N_sell_signal = signal.where(signal < 0).count()
@@ -113,46 +108,68 @@ def ordinary_statistical_assessment(dict_results, HP=5):
     p_value_sell = pair_test_of_signal(Rtn_short, log_return)
     p_value_BS = pair_test_of_signal(Rtn_LS, log_return, mean=Rtn_LS_mean)
 
-    dict_assessment = {
-            'N_buy': N_buy_signal,
-            'N_sell': N_sell_signal,
-            'N_long_days': N_long,
-            'N_short_days': N_short,
-            'Buy_rtn': Rtn_long_mean,
-            'Sell_rtn': Rtn_short_mean,
-            'B-S_rtn': Rtn_LS_mean,
-            'p_value_buy': p_value_buy,
-            'p_value_sell': p_value_sell,
-            'p_value_buysell': p_value_BS
-            
-            }
-    
     ##################################################################################
-    x = pd.DataFrame(columns=['signal','open'])
-    x['signal'] = signal
-    x['open'] = open_signal
-    x['close'] = close_signal
-    x['pos_chg'] = pos_chg
-    x['ps'] = position
-    x['rtn'] = log_return
-    x = x.reset_index()
+    # x = pd.DataFrame(columns=['signal','open'])
+    # x['signal'] = signal
+    # x['open'] = open_signal
+    # x['close'] = close_signal
+    # x['pos_chg'] = pos_chg
+    # x['ps'] = position
+    # x['rtn'] = log_return
+    # x = x.reset_index()
     ####################################################################################
 
     # Bernoulli trials for each day when a position is opened
-    tmp_pos = (position.where(position != 0).dropna())
-    tmp_rtn = log_return.loc[tmp_pos.index.tolist()]
-    tmp = tmp_pos * tmp_rtn
-    right_open_cases = tmp.where(tmp > 0).dropna().count()
-    all_open_cases = tmp.count()
-    probability = right_open_cases / all_open_cases
-    Bernoulli_trials(x=right_open_cases, N=all_open_cases)
+    tmp_pos_Buy = (position.where(position > 0).dropna())
+    tmp_pos_Sell = (position.where(position < 0).dropna())
+    tmp_pos_BS = (position.where(position != 0).dropna())
+    tmp_rtn_Buy = log_return.loc[tmp_pos_Buy.index.tolist()]
+    tmp_rtn_Sell = log_return.loc[tmp_pos_Sell.index.tolist()]
+    tmp_rtn_BS = log_return.loc[tmp_pos_BS.index.tolist()]
+
+    tmp_buy = tmp_pos_Buy * tmp_rtn_Buy
+    right_open_buy = tmp_buy.where(tmp_buy > 0).dropna().count()
+    all_open_buy = tmp_buy.count()
+    prob_Buy = right_open_buy / all_open_buy
+    p_value_Buy0 = Bernoulli_trials(x=right_open_buy, N=all_open_buy)
+
+    tmp_Sell = tmp_pos_Sell * tmp_rtn_Sell
+    right_open_sell = tmp_Sell.where(tmp_Sell > 0).dropna().count()
+    all_open_sell = tmp_Sell.count()
+    prob_Sell = right_open_sell / all_open_sell
+    p_value_Sell0 = Bernoulli_trials(x=right_open_sell, N=all_open_sell)
+
+    tmp_BS = tmp_pos_BS * tmp_rtn_BS
+    right_open_bs = tmp_BS.where(tmp_BS > 0).dropna().count()
+    all_open_bs = tmp_BS.count()
+    prob_BS = right_open_bs / all_open_bs
+    p_value_BS0 = Bernoulli_trials(x=right_open_bs, N=all_open_bs)
+
+    dict_assessment = {
+        'N_buy': N_buy_signal,
+        'N_sell': N_sell_signal,
+        'N_long_days': N_long,
+        'N_short_days': N_short,
+        'Buy_rtn': Rtn_long_mean,
+        'Sell_rtn': Rtn_short_mean,
+        'B-S_rtn': Rtn_LS_mean,
+        'p_value_buy': p_value_buy,
+        'p_value_sell': p_value_sell,
+        'p_value_buysell': p_value_BS,
+        'B>0': prob_Buy,
+        'S>0': prob_Sell,
+        'B-S>0': prob_BS,
+        'p_B': p_value_Buy0,
+        'p_S': p_value_Sell0,
+        'p_BS': p_value_BS0
+
+    }
 
     return dict_assessment
 
 
 if __name__ == '__main__':
     df_ys = pd.read_csv('./Data/ru_i_15min.csv')
-    #    df_ys = pd.read_csv('./Data/IF1903_1min.csv')
     df_ys.datetime = df_ys.datetime.apply(pd.to_datetime) + dt.timedelta(minutes=14, seconds=59)
     df_ys.datetime = df_ys.datetime.apply(lambda x: str(x))
     df_ys.set_index('datetime', inplace=True)
@@ -160,5 +177,33 @@ if __name__ == '__main__':
     str_Close = [i for i in ls_cols if i[-6:] == '.close'][0]
     ys = df_ys.loc[:, str_Close]
 
-    ys = ys[-300:]
+    # ys = ys[-300:]
+
+    from technical_indicators import MACD_adj
+    strategy = MACD_adj
+    dict_results = strategy(ys)#, w=5)
+
+    dict_assessment = ordinary_statistical_assessment(dict_results, HP=5)
+    df_assessment = pd.DataFrame(index=['Value', 'Days or p'],
+                                 columns=['N(Buy)', 'N(Sell)', 'Buy', 'Sell',
+                                          'B-S', 'B>0', 'S>0', 'B-S>0'])
+    df_assessment.loc['Value']['N(Buy)'] = dict_assessment['N_buy']
+    df_assessment.loc['Value']['N(Sell)'] = dict_assessment['N_sell']
+    df_assessment.loc['Days or p']['N(Buy)'] = dict_assessment['N_long_days']
+    df_assessment.loc['Days or p']['N(Sell)'] = dict_assessment['N_short_days']
+    df_assessment.loc['Value']['Buy'] = dict_assessment['Buy_rtn']
+    df_assessment.loc['Value']['Sell'] = dict_assessment['Sell_rtn']
+    df_assessment.loc['Value']['B-S'] = dict_assessment['B-S_rtn']
+    df_assessment.loc['Days or p']['Buy'] = dict_assessment['p_value_buy']
+    df_assessment.loc['Days or p']['Sell'] = dict_assessment['p_value_sell']
+    df_assessment.loc['Days or p']['B-S'] = dict_assessment['p_value_buysell']
+    df_assessment.loc['Value']['B>0'] = dict_assessment['B>0']
+    df_assessment.loc['Value']['S>0'] = dict_assessment['S>0']
+    df_assessment.loc['Value']['B-S>0'] = dict_assessment['B-S>0']
+    df_assessment.loc['Days or p']['B>0'] = dict_assessment['p_B']
+    df_assessment.loc['Days or p']['S>0'] = dict_assessment['p_S']
+    df_assessment.loc['Days or p']['B-S>0'] = dict_assessment['p_BS']
+
+
+
 

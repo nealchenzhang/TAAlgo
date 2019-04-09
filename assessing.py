@@ -98,6 +98,10 @@ def Bernoulli_trials(x, N, p=0.5):
         else:
             print('We failed to reject the null hypothesis at the {:.2%} level of significance'.format(alpha))
 
+    pval = stats.norm.sf(z_stat)
+
+    return pval
+
 
 def Bootstrap_Approach(ys):
     log_return = (ys / ys.shift(1)).apply(np.log)
@@ -155,7 +159,6 @@ def Bootstrap_Approach(ys):
             kurtosis_significance = alpha
         else:
             print('We failed to reject the null hypothesis at the {:.2%} level of significance'.format(alpha))
-
 
     dict_stats = {
         'Mean': mean,
