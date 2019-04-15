@@ -16,9 +16,6 @@ from scipy import stats
 
 # Passive or fixed time periods
 
-
-# TODO: check the normality of rtn
-
 # Assessing the Performance of Trading Signals
 
 
@@ -65,7 +62,7 @@ def pair_test(ys, signal, hp=5, rtn_type='log'):
         c_t = stats.t.ppf(1 - alpha, df=df)
         if t_stat > c_t:
             print('Reject the null hypothesis at the {:.2%} level of significance'.format(alpha))
-            print('Good to go with fixed {} holding period'.format(h))
+            print('Good to go with fixed {} holding period'.format(hp))
         else:
             print('We failed to reject the null hypothesis at the {:.2%} level of significance'.format(alpha))
 
@@ -103,14 +100,17 @@ def Bernoulli_trials(x, N, p=0.5):
     return pval
 
 
+
+
 def Bootstrap_Approach(ys):
+    # TODO: check the normality of rtn
     log_return = (ys / ys.shift(1)).apply(np.log)
     mean = log_return.mean()
     std_dev = log_return.std()
 
     # Calculate sample bias-corrected skewness
     N = log_return.size
-    g1 = (((log_return - mean) ** 3).sum() / N) / ((((log_return - mean) ** 2).sum() / N) ** 3 / 2)
+    g1 = (((log_return - mean) ** 3).sum() / N) / (((((log_return - mean) ** 2).sum()) / N) ** (3 / 2))
     G1 = (N * (N - 1)) ** 0.5 * g1 / (N - 2)
     # Significance test of skewness
     SES = (6*N*(N-1) / ((N-2)*(N+1)*(N+3)))**0.5
@@ -125,24 +125,23 @@ def Bootstrap_Approach(ys):
     two_tailed_alpha = [0.05, 0.01]
     print('-' * 40)
     print('Calculated z_stats is {}.'.format(ZG1))
-    skewness_significance = 0
     for alpha in two_tailed_alpha:
         c_t = stats.norm.ppf(1 - alpha / 2)
         if ZG1 > c_t:
             print('Reject the null hypothesis at the {:.2%} level of significance'.format(alpha))
-            skewness_significance = alpha
         else:
             print('We failed to reject the null hypothesis at the {:.2%} level of significance'.format(alpha))
+    G1_p = stats.norm.sf(ZG1)
     
     # Calculate sample bias-corrected kurtosis
     N = log_return.size
-    g2 = (((log_return - mean) ** 4).sum() / N) / ((((log_return - mean) ** 2).sum() / N) ** 2)
-    G2 = (N - 1)/((N-2)*(N-3)) *((N+1)*g2-3(N-1))+3
+    g2 = (((log_return - mean) ** 4).sum() / N) / (((((log_return - mean) ** 2).sum()) / N) ** 2)
+    G2 = (N - 1)/((N-2)*(N-3)) *((N+1)*g2-3*(N-1))+3
     # Significance test of kurtosis
     SEK = 2*SES*((N**2-1)/((N-3)*(N+5)))**0.5
     # H0: G2 = 3
     # H1: G2 != 3
-    ZG2 = G2 / SEK
+    ZG2 = (G2-3) / SEK
     
     print('Null Hypothesis: G2 = 3')
     print('Alternative Hypothesis: G2 != 3')
@@ -151,29 +150,28 @@ def Bootstrap_Approach(ys):
     two_tailed_alpha = [0.05, 0.01]
     print('-' * 40)
     print('Calculated z_stats is {}.'.format(ZG2))
-    kurtosis_significance = 0
     for alpha in two_tailed_alpha:
         c_t = stats.norm.ppf(1 - alpha / 2)
         if ZG2 > c_t:
             print('Reject the null hypothesis at the {:.2%} level of significance'.format(alpha))
-            kurtosis_significance = alpha
         else:
             print('We failed to reject the null hypothesis at the {:.2%} level of significance'.format(alpha))
+    G2_p = stats.norm.sf(ZG2)
 
     dict_stats = {
         'Mean': mean,
         'Std': std_dev,
         'Skewness': {
             'value': G1,
-            'significance': skewness_significance
+            'p_value': G1_p
         },
         'Kurtosis': {
             'value': G2,
-            'significance': kurtosis_significance
+            'p_value': G2_p
         },
         'KS_stat': {
             'value': None,
-            'significance': None
+            'p_value': None
         }
     }
         

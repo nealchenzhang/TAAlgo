@@ -109,14 +109,14 @@ def ordinary_statistical_assessment(dict_results, HP=5):
     p_value_BS = pair_test_of_signal(Rtn_LS, log_return, mean=Rtn_LS_mean)
 
     ##################################################################################
-    # x = pd.DataFrame(columns=['signal','open'])
-    # x['signal'] = signal
-    # x['open'] = open_signal
-    # x['close'] = close_signal
-    # x['pos_chg'] = pos_chg
-    # x['ps'] = position
-    # x['rtn'] = log_return
-    # x = x.reset_index()
+    df_signal = pd.DataFrame(columns=['signal','open'])
+    df_signal['signal'] = signal
+    df_signal['open'] = open_signal
+    df_signal['close'] = close_signal
+    df_signal['pos_chg'] = pos_chg
+    df_signal['ps'] = position
+    df_signal['rtn'] = log_return
+    df_signal = df_signal.reset_index()
     ####################################################################################
 
     # Bernoulli trials for each day when a position is opened
@@ -161,11 +161,34 @@ def ordinary_statistical_assessment(dict_results, HP=5):
         'B-S>0': prob_BS,
         'p_B': p_value_Buy0,
         'p_S': p_value_Sell0,
-        'p_BS': p_value_BS0
-
+        'p_BS': p_value_BS0,
+        'df_signal': df_signal
     }
 
     return dict_assessment
+
+
+def summary(dict_assessment):
+    df_assessment = pd.DataFrame(index=['Value', 'Days or p'],
+                                 columns=['N(Buy)', 'N(Sell)', 'Buy', 'Sell',
+                                          'B-S', 'B>0', 'S>0', 'B-S>0'])
+    df_assessment.loc['Value']['N(Buy)'] = dict_assessment['N_buy']
+    df_assessment.loc['Value']['N(Sell)'] = dict_assessment['N_sell']
+    df_assessment.loc['Days or p']['N(Buy)'] = dict_assessment['N_long_days']
+    df_assessment.loc['Days or p']['N(Sell)'] = dict_assessment['N_short_days']
+    df_assessment.loc['Value']['Buy'] = dict_assessment['Buy_rtn']
+    df_assessment.loc['Value']['Sell'] = dict_assessment['Sell_rtn']
+    df_assessment.loc['Value']['B-S'] = dict_assessment['B-S_rtn']
+    df_assessment.loc['Days or p']['Buy'] = '(' + str(np.round(dict_assessment['p_value_buy'], 4)) + ')'
+    df_assessment.loc['Days or p']['Sell'] = '(' + str(np.round(dict_assessment['p_value_sell'], 4)) + ')'
+    df_assessment.loc['Days or p']['B-S'] = '(' + str(np.round(dict_assessment['p_value_buysell'], 4)) + ')'
+    df_assessment.loc['Value']['B>0'] = dict_assessment['B>0']
+    df_assessment.loc['Value']['S>0'] = dict_assessment['S>0']
+    df_assessment.loc['Value']['B-S>0'] = dict_assessment['B-S>0']
+    df_assessment.loc['Days or p']['B>0'] = '(' + str(np.round(dict_assessment['p_B'], 4)) + ')'
+    df_assessment.loc['Days or p']['S>0'] = '(' + str(np.round(dict_assessment['p_S'], 4)) + ')'
+    df_assessment.loc['Days or p']['B-S>0'] = '(' + str(np.round(dict_assessment['p_BS'], 4)) + ')'
+    return df_assessment
 
 
 if __name__ == '__main__':
@@ -182,28 +205,8 @@ if __name__ == '__main__':
     from technical_indicators import MACD_adj
     strategy = MACD_adj
     dict_results = strategy(ys)#, w=5)
-
-    dict_assessment = ordinary_statistical_assessment(dict_results, HP=5)
-    df_assessment = pd.DataFrame(index=['Value', 'Days or p'],
-                                 columns=['N(Buy)', 'N(Sell)', 'Buy', 'Sell',
-                                          'B-S', 'B>0', 'S>0', 'B-S>0'])
-    df_assessment.loc['Value']['N(Buy)'] = dict_assessment['N_buy']
-    df_assessment.loc['Value']['N(Sell)'] = dict_assessment['N_sell']
-    df_assessment.loc['Days or p']['N(Buy)'] = dict_assessment['N_long_days']
-    df_assessment.loc['Days or p']['N(Sell)'] = dict_assessment['N_short_days']
-    df_assessment.loc['Value']['Buy'] = dict_assessment['Buy_rtn']
-    df_assessment.loc['Value']['Sell'] = dict_assessment['Sell_rtn']
-    df_assessment.loc['Value']['B-S'] = dict_assessment['B-S_rtn']
-    df_assessment.loc['Days or p']['Buy'] = dict_assessment['p_value_buy']
-    df_assessment.loc['Days or p']['Sell'] = dict_assessment['p_value_sell']
-    df_assessment.loc['Days or p']['B-S'] = dict_assessment['p_value_buysell']
-    df_assessment.loc['Value']['B>0'] = dict_assessment['B>0']
-    df_assessment.loc['Value']['S>0'] = dict_assessment['S>0']
-    df_assessment.loc['Value']['B-S>0'] = dict_assessment['B-S>0']
-    df_assessment.loc['Days or p']['B>0'] = dict_assessment['p_B']
-    df_assessment.loc['Days or p']['S>0'] = dict_assessment['p_S']
-    df_assessment.loc['Days or p']['B-S>0'] = dict_assessment['p_BS']
-
-
+    dict_assessment = ordinary_statistical_assessment(dict_results, HP=1)
+    df_assessment = summary(dict_assessment)
+    df_signal = dict_assessment['df_signal']
 
 
