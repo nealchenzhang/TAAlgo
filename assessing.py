@@ -100,14 +100,12 @@ def Bernoulli_trials(x, N, p=0.5):
     return pval
 
 
-
-
 def Bootstrap_Approach(ys):
     # TODO: check the normality of rtn
     log_return = (ys / ys.shift(1)).apply(np.log)
     mean = log_return.mean()
     std_dev = log_return.std()
-
+    ###########################################################################
     # Calculate sample bias-corrected skewness
     N = log_return.size
     g1 = (((log_return - mean) ** 3).sum() / N) / (((((log_return - mean) ** 2).sum()) / N) ** (3 / 2))
@@ -157,6 +155,14 @@ def Bootstrap_Approach(ys):
         else:
             print('We failed to reject the null hypothesis at the {:.2%} level of significance'.format(alpha))
     G2_p = stats.norm.sf(ZG2)
+    ###########################################################################
+    
+    G1 = stats.skew(log_return.dropna())
+    (ZG1, G1_p) = stats.skewtest(log_return.dropna())
+    G2 = stats.kurtosis(log_return.dropna())
+    (ZG2, G2_p) = stats.kurtosistest(log_return.dropna())
+    
+    (ZKS, KS_p) = stats.kstest(log_return.dropna(), 'norm')
 
     dict_stats = {
         'Mean': mean,
@@ -170,14 +176,14 @@ def Bootstrap_Approach(ys):
             'p_value': G2_p
         },
         'KS_stat': {
-            'value': None,
-            'p_value': None
+            'value': ZKS,
+            'p_value': KS_p
         }
     }
         
     return dict_stats
     
-# Assessing the Performance of Predicting Returns    
+# Assessing the Performance of Predicting Returns
 
 
 if __name__ == '__main__':
