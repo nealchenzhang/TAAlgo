@@ -43,7 +43,8 @@ async def signal_generator_HS(SYMBOL):
                 ys = pd.Series(data=klines.close[-250:-1],
                                index=[str(dt.datetime.fromtimestamp(i / 1e9)) for i in klines.datetime[-250:-1]]
                                )
-                dict_Patterns, Peaks, Bottoms = HS(ys, pflag=0, method='RW', w=1, iteration=0)
+                dict_Patterns, Peaks, Bottoms = HS(ys, pflag=0, method='RW', w=3, iteration=0)
+                print(dict_Patterns)
                 HS_plotting(ys, Peaks, Bottoms, dict_Patterns, figname='hanyi//ni'+str_name, savefig=True)
 
     await update_kline_chan.close()
