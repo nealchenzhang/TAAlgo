@@ -11,16 +11,16 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# from matplotlib.dates import DateFormatter, WeekdayLocator, DayLocator, MONDAY,YEARLY
-# from mpl_finance import candlestick_ohlc
-# from matplotlib.pylab import date2num
+#from matplotlib.dates import DateFormatter, WeekdayLocator, DayLocator, MONDAY,YEARLY
+#from mpl_finance import candlestick_ohlc
+#from matplotlib.pylab import date2num
 
 import seaborn as sns
 sns.set_style('white')
 
 from preprocessing import RW
 from preprocessing import TP
-# from preprocessing import PIPs
+#from preprocessing import PIPs
 
 from preprocessing import PB_plotting
 
@@ -72,10 +72,7 @@ def HS_plotting(ys, Peaks, Bottoms, dict_Patterns, figname, savefig=False):
                            marker='x', color='black')
                 # Plotting Neckline
                 ls_neckline_x = np.linspace(start=ls_xline[0]-15, stop=ls_x.index(Patterns_Normal_Breakpoints[i][0])+15)
-                try:
-                    ls_neckline_y = ls_neckline_x*Patterns_Normal_Necklines[i][1] + Patterns_Normal_Necklines[i][0]
-                except:
-                    ls_neckline_y = [Patterns_Normal_Necklines[i]] * len(ls_neckline_x)
+                ls_neckline_y = ls_neckline_x*Patterns_Normal_Necklines[i][1] + Patterns_Normal_Necklines[i][0]
                 ax.plot(ls_neckline_x, ls_neckline_y, linestyle='-.', color='green')
                 ax.scatter(x=ls_x.index(Patterns_Normal_Breakpoints[i][0]), y=Patterns_Normal_PT[i], marker='o', color='yellow')
         if jj > 0:
@@ -87,10 +84,7 @@ def HS_plotting(ys, Peaks, Bottoms, dict_Patterns, figname, savefig=False):
                            marker='v', color='black')
                 # Plotting Neckline
                 ls_neckline_x = np.linspace(start=ls_xline[0]-15, stop=ls_x.index(Patterns_Inverse_Breakpoints[i][0])+15)
-                try:
-                    ls_neckline_y = ls_neckline_x*Patterns_Inverse_Necklines[i][1] + Patterns_Inverse_Necklines[i][0]
-                except:
-                    ls_neckline_y = [Patterns_Inverse_Necklines[i]] * len(ls_neckline_x)
+                ls_neckline_y = ls_neckline_x*Patterns_Inverse_Necklines[i][1] + Patterns_Inverse_Necklines[i][0]
                 ax.plot(ls_neckline_x, ls_neckline_y, linestyle='-.', color='red')
                 ax.scatter(x=ls_x.index(Patterns_Inverse_Breakpoints[i][0]), y=Patterns_Inverse_PT[i], marker='o',
                            color='yellow')
@@ -104,7 +98,7 @@ def HS_plotting(ys, Peaks, Bottoms, dict_Patterns, figname, savefig=False):
             tick.set_rotation(15)
 
         if savefig:
-            plt.savefig('.//Data//figs//' + figname + '.png')
+            plt.savefig('.//Data//figs//'+ figname + '.png')
 
         plt.show()
 
@@ -172,9 +166,7 @@ def HS(ys, pflag, method='RW', **kwargs):
     ls_x = ys.index.tolist()
     ls_p = Peaks.index.tolist()
     ls_b = Bottoms.index.tolist()
-    P_idx = [ys.index.get_loc(x) for x in ls_p]
-    B_idx = [ys.index.get_loc(x) for x in ls_b]
-    
+
     P_idx = pd.Series(index=ls_p, data=[1]*len(ls_p))
     B_idx = pd.Series(index=ls_b, data=[2]*len(ls_b))
     PB_idx = P_idx.append(B_idx)
@@ -191,8 +183,8 @@ def HS(ys, pflag, method='RW', **kwargs):
         elif PB_idx.iloc[i:i+5].values.tolist() == Pot_Inverse:
             Pot_Index[i+4] = 2
     
-    PNidx = [i for i,x in enumerate(Pot_Index) if x==1]
-    PIidx = [i for i,x in enumerate(Pot_Index) if x==2]
+    PNidx = [i for i, x in enumerate(Pot_Index) if x == 1]
+    PIidx = [i for i, x in enumerate(Pot_Index) if x == 2]
     
     ## HS Tops (Normal Form)
     # Definition of outputs
@@ -205,7 +197,7 @@ def HS(ys, pflag, method='RW', **kwargs):
     Patterns_Normal_PT = []
     
     mn = len(PNidx)
-    Pot_Normalcases_Percases = [0] * mn# bug??
+    Pot_Normalcases_Percases = [0] * mn
     if mn != 0:
         Pot_Normalcases_Idx = [0] * mn
         for i in range(0, mn):
@@ -225,7 +217,7 @@ def HS(ys, pflag, method='RW', **kwargs):
                 ((ls_x.index(PerCase.index.tolist()[4]) - ls_x.index(PerCase.index.tolist()[2])) <
                  2.5 * (ls_x.index(PerCase.index.tolist()[2]) - ls_x.index(PerCase.index.tolist()[0])))):
                 Pot_Normalcases_Idx[i] = 1
-                Pot_Normalcases_Percases[i] = PerCase # bug??
+                Pot_Normalcases_Percases[i] = PerCase
     else:
         Pot_Normalcases_Idx = 0
 
@@ -233,7 +225,7 @@ def HS(ys, pflag, method='RW', **kwargs):
     if mnn == 0:
         pass
     else:
-        Pot_Normalcases_Idx2 = [i for i,x in enumerate(Pot_Normalcases_Idx) if x==1]
+        Pot_Normalcases_Idx2 = [i for i, x in enumerate(Pot_Normalcases_Idx) if x == 1]
     j = 0
     if mnn!=0:
         for i in range(0, mnn):
@@ -260,7 +252,7 @@ def HS(ys, pflag, method='RW', **kwargs):
                 Patterns_Normal_Points.append(NPerCase)
                 Patterns_Normal_Necklines.append([Neckline_Alpha, Neckline_Beta])
                 Patterns_Normal_Breakpoints.append([ls_x[Neckline_Breakpoint], ys.loc[ls_x[Neckline_Breakpoint]]])
-                Patterns_Normal_Widths.append(ls_x.index(NPerCase.index.tolist()[4])-ls_x.index(NPerCase.index.tolist()[0]))
+                Patterns_Normal_Widths.append(ls_x.index(NPerCase.index.tolist()[3])-ls_x.index(NPerCase.index.tolist()[1]))
                 Patterns_Normal_Heights.append(NPerCase.iloc[2]['Price']-(Neckline_Beta*ls_x.index(NPerCase.index.tolist()[2])+Neckline_Alpha))
                 Patterns_Normal_TL.append(ls_x.index(Patterns_Normal_Breakpoints[-1][0])+Patterns_Normal_Widths[-1])
                 tstar, ystar, LU, LD = line_inter([[ls_x.index(NPerCase.index.tolist()[1]), NPerCase.iloc[1]['Price']],
@@ -339,7 +331,7 @@ def HS(ys, pflag, method='RW', **kwargs):
                 Patterns_Inverse_Necklines.append([Neckline_Alpha, Neckline_Beta])
                 Patterns_Inverse_Breakpoints.append([ls_x[Neckline_Breakpoint], ys.loc[ls_x[Neckline_Breakpoint]]])
                 Patterns_Inverse_Widths.append(
-                    ls_x.index(NPerCase.index.tolist()[4]) - ls_x.index(NPerCase.index.tolist()[0]))
+                    ls_x.index(NPerCase.index.tolist()[3]) - ls_x.index(NPerCase.index.tolist()[1]))
                 Patterns_Inverse_Heights.append(np.abs(NPerCase.iloc[2]['Price'] - (
                             Neckline_Beta * ls_x.index(NPerCase.index.tolist()[2]) + Neckline_Alpha)))
                 Patterns_Inverse_TL.append(ls_x.index(Patterns_Inverse_Breakpoints[-1][0]) + Patterns_Inverse_Widths[-1])
@@ -412,8 +404,8 @@ def TTTB(ys, pflag, method='RW', **kwargs):
     elif method == 'TP':
         Peaks, Bottoms = TP(ys, iteration=kwargs['iteration'])
 
-    # Peaks, Bottoms = RW(ys, w=1, iteration=0)
-    # pflag = 1
+    Peaks, Bottoms = RW(ys, w=1, iteration=0)
+    pflag = 1
     if l > 250:
         pflag = 0
 
@@ -443,6 +435,7 @@ def TTTB(ys, pflag, method='RW', **kwargs):
     PNidx = [i for i, x in enumerate(Pot_Index) if x == 1]
     PIidx = [i for i, x in enumerate(Pot_Index) if x == 2]
 
+    # TODO
     ## Triple Tops (Normal Form)
     # Definition of outputs
     Patterns_Normal_Points = []
@@ -486,7 +479,11 @@ def TTTB(ys, pflag, method='RW', **kwargs):
         for i in range(0, mnn):
             NPerCase = Pot_Normalcases_Percases[Pot_Normalcases_Idx2[i]]
             Timelimit = ls_x.index(NPerCase.index.tolist()[4]) + ls_x.index(NPerCase.index.tolist()[4]) - \
-                    ls_x.index(NPerCase.index.tolist()[0])
+                        ls_x.index(NPerCase.index.tolist()[0])
+            # TODO
+            # Neckline_Beta = (NPerCase.iloc[3]['Price'] - NPerCase.iloc[1]['Price']) / \
+            #                 (ls_x.index(NPerCase.index.tolist()[3]) - ls_x.index(NPerCase.index.tolist()[1]))
+            # Neckline_Alpha = NPerCase.iloc[1]['Price'] - Neckline_Beta * ls_x.index(NPerCase.index.tolist()[1])
             if Timelimit <= l:
                 Neckline_OU = list(range(ls_x.index(NPerCase.index.tolist()[4]) + 1, Timelimit))
             else:
@@ -494,7 +491,8 @@ def TTTB(ys, pflag, method='RW', **kwargs):
 
             Neckline_OU = pd.DataFrame(index=[ls_x[i] for i in Neckline_OU], data=ys.iloc[Neckline_OU])
             Neckline_OU.columns = ['Price']
-            Neckline_OU.loc[:, 'Line'] = np.min([NPerCase.iloc[1]['Price'], NPerCase.iloc[3]['Price']])
+            Neckline_OU.loc[:, 'Line'] = [ls_x.index(i) for i in Neckline_OU.index.tolist()]
+            Neckline_OU.loc[:, 'Line'] = Neckline_OU.loc[:, 'Line'] * Neckline_Beta + Neckline_Alpha
             Neckline_OU.loc[:, 'Diff'] = Neckline_OU.loc[:, 'Price'] - Neckline_OU.loc[:, 'Line']
             # TODO: optimize codes
             if len((Neckline_OU.where(Neckline_OU.loc[:, 'Diff'] < 0).dropna()).index.tolist()) != 0:
@@ -502,18 +500,13 @@ def TTTB(ys, pflag, method='RW', **kwargs):
                     (Neckline_OU.where(Neckline_OU.loc[:, 'Diff'] < 0).dropna()).index.tolist()[0])
                 j += 1
                 Patterns_Normal_Points.append(NPerCase)
-                Patterns_Normal_Necklines.append(np.min([NPerCase.iloc[1]['Price'], NPerCase.iloc[3]['Price']]))
+                Patterns_Normal_Necklines.append([Neckline_Alpha, Neckline_Beta])
                 Patterns_Normal_Breakpoints.append([ls_x[Neckline_Breakpoint], ys.loc[ls_x[Neckline_Breakpoint]]])
                 Patterns_Normal_Widths.append(
-                    ls_x.index(NPerCase.index.tolist()[4]) - ls_x.index(NPerCase.index.tolist()[0]))
-                Patterns_Normal_Heights.append(
-                    np.max(
-                        [NPerCase.iloc[0]['Price'], NPerCase.iloc[2]['Price'], NPerCase.iloc[4]['Price']]
-                    ) - np.min(
-                        [NPerCase.iloc[1]['Price'], NPerCase.iloc[3]['Price']]
-                    ))
-                Patterns_Normal_TL.append(
-                    ls_x.index(Patterns_Normal_Breakpoints[-1][0]) + Patterns_Normal_Widths[-1])
+                    ls_x.index(NPerCase.index.tolist()[3]) - ls_x.index(NPerCase.index.tolist()[1]))
+                Patterns_Normal_Heights.append(NPerCase.iloc[2]['Price'] - (
+                            Neckline_Beta * ls_x.index(NPerCase.index.tolist()[2]) + Neckline_Alpha))
+                Patterns_Normal_TL.append(ls_x.index(Patterns_Normal_Breakpoints[-1][0]) + Patterns_Normal_Widths[-1])
                 tstar, ystar, LU, LD = line_inter([[ls_x.index(NPerCase.index.tolist()[1]), NPerCase.iloc[1]['Price']],
                                                    [ls_x.index(NPerCase.index.tolist()[3]), NPerCase.iloc[3]['Price']]],
                                                   [[ls_x.index(Patterns_Normal_Breakpoints[-1][0]) - 1,
@@ -534,7 +527,7 @@ def TTTB(ys, pflag, method='RW', **kwargs):
     Patterns_Inverse_PT = []
 
     mi = len(PIidx)
-    Pot_Inversecases_Percases = [0] * mi
+    Pot_Inversecases_Percases = [0] * mi  # bug??
     if mi != 0:
         Pot_Inversecases_Idx = [0] * mi
         for i in range(0, mi):
@@ -542,17 +535,19 @@ def TTTB(ys, pflag, method='RW', **kwargs):
             PerCase = pd.DataFrame(columns=['P/B', 'Price'])
             PerCase.loc[:, 'P/B'] = PB_idx.iloc[PIidx[i] - 4: PIidx[i] + 1]
             PerCase.loc[:, 'Price'] = ys.loc[PerCase.index.tolist()].values
-            # Condition 2 3 4
-            ls_tmp = [PerCase.iloc[0]['Price'], PerCase.iloc[4]['Price']]
-            if (PerCase.iloc[2]['Price'] >= np.min([PerCase.iloc[0]['Price'], PerCase.iloc[4]['Price']])) & \
-                    ((np.max(ls_tmp) - np.min(ls_tmp))/np.min(ls_tmp) <= 0.04) & \
-                    (PerCase.iloc[3]['Price'] <= PerCase.iloc[1]['Price'] <= 1.4*(PerCase.iloc[3]['Price'])) & \
+            # Condition 1 3 4
+            if ((PerCase.iloc[2]['Price'] < np.min([PerCase.iloc[0]['Price'],
+                                                    PerCase.iloc[4]['Price']])) &
+                    (PerCase.iloc[0]['Price'] <= 0.5 * np.sum([PerCase.iloc[3]['Price'],
+                                                               PerCase.iloc[4]['Price']])) &
+                    (PerCase.iloc[4]['Price'] <= 0.5 * np.sum([PerCase.iloc[0]['Price'],
+                                                               PerCase.iloc[1]['Price']])) &
                     ((ls_x.index(PerCase.index.tolist()[2]) - ls_x.index(PerCase.index.tolist()[0])) <
-                     2.5 * (ls_x.index(PerCase.index.tolist()[4]) - ls_x.index(PerCase.index.tolist()[2]))) & \
+                     2.5 * (ls_x.index(PerCase.index.tolist()[4]) - ls_x.index(PerCase.index.tolist()[2]))) &
                     ((ls_x.index(PerCase.index.tolist()[4]) - ls_x.index(PerCase.index.tolist()[2])) <
-                     2.5 * (ls_x.index(PerCase.index.tolist()[2]) - ls_x.index(PerCase.index.tolist()[0]))):
+                     2.5 * (ls_x.index(PerCase.index.tolist()[2]) - ls_x.index(PerCase.index.tolist()[0])))):
                 Pot_Inversecases_Idx[i] = 1
-                Pot_Inversecases_Percases[i] = PerCase
+                Pot_Inversecases_Percases[i] = PerCase  # bug??
     else:
         Pot_Inversecases_Idx = 0
 
@@ -566,7 +561,10 @@ def TTTB(ys, pflag, method='RW', **kwargs):
         for i in range(0, mii):
             NPerCase = Pot_Inversecases_Percases[Pot_Inversecases_Idx2[i]]
             Timelimit = ls_x.index(NPerCase.index.tolist()[4]) + ls_x.index(NPerCase.index.tolist()[4]) - \
-                    ls_x.index(NPerCase.index.tolist()[0])
+                        ls_x.index(NPerCase.index.tolist()[0])
+            Neckline_Beta = (NPerCase.iloc[3]['Price'] - NPerCase.iloc[1]['Price']) / \
+                            (ls_x.index(NPerCase.index.tolist()[3]) - ls_x.index(NPerCase.index.tolist()[1]))
+            Neckline_Alpha = NPerCase.iloc[1]['Price'] - Neckline_Beta * ls_x.index(NPerCase.index.tolist()[1])
             if Timelimit <= l:
                 Neckline_OU = list(range(ls_x.index(NPerCase.index.tolist()[4]) + 1, Timelimit))
             else:
@@ -574,7 +572,8 @@ def TTTB(ys, pflag, method='RW', **kwargs):
 
             Neckline_OU = pd.DataFrame(index=[ls_x[i] for i in Neckline_OU], data=ys.iloc[Neckline_OU])
             Neckline_OU.columns = ['Price']
-            Neckline_OU.loc[:, 'Line'] = np.max([NPerCase.iloc[1]['Price'], NPerCase.iloc[3]['Price']])
+            Neckline_OU.loc[:, 'Line'] = [ls_x.index(i) for i in Neckline_OU.index.tolist()]
+            Neckline_OU.loc[:, 'Line'] = Neckline_OU.loc[:, 'Line'] * Neckline_Beta + Neckline_Alpha
             Neckline_OU.loc[:, 'Diff'] = Neckline_OU.loc[:, 'Price'] - Neckline_OU.loc[:, 'Line']
             # TODO: optimize codes
             if len((Neckline_OU.where(Neckline_OU.loc[:, 'Diff'] > 0).dropna()).index.tolist()) != 0:
@@ -582,16 +581,12 @@ def TTTB(ys, pflag, method='RW', **kwargs):
                     (Neckline_OU.where(Neckline_OU.loc[:, 'Diff'] > 0).dropna()).index.tolist()[0])
                 jj += 1
                 Patterns_Inverse_Points.append(NPerCase)
-                Patterns_Inverse_Necklines.append(np.max([NPerCase.iloc[1]['Price'], NPerCase.iloc[3]['Price']]))
+                Patterns_Inverse_Necklines.append([Neckline_Alpha, Neckline_Beta])
                 Patterns_Inverse_Breakpoints.append([ls_x[Neckline_Breakpoint], ys.loc[ls_x[Neckline_Breakpoint]]])
                 Patterns_Inverse_Widths.append(
-                    ls_x.index(NPerCase.index.tolist()[4]) - ls_x.index(NPerCase.index.tolist()[0]))
-                Patterns_Inverse_Heights.append(
-                    np.min(
-                        [NPerCase.iloc[0]['Price'], NPerCase.iloc[2]['Price'], NPerCase.iloc[4]['Price']]
-                    ) - np.max(
-                        [NPerCase.iloc[1]['Price'], NPerCase.iloc[3]['Price']]
-                    ))
+                    ls_x.index(NPerCase.index.tolist()[3]) - ls_x.index(NPerCase.index.tolist()[1]))
+                Patterns_Inverse_Heights.append(np.abs(NPerCase.iloc[2]['Price'] - (
+                        Neckline_Beta * ls_x.index(NPerCase.index.tolist()[2]) + Neckline_Alpha)))
                 Patterns_Inverse_TL.append(
                     ls_x.index(Patterns_Inverse_Breakpoints[-1][0]) + Patterns_Inverse_Widths[-1])
                 tstar, ystar, LU, LD = line_inter([[ls_x.index(NPerCase.index.tolist()[1]), NPerCase.iloc[1]['Price']],
@@ -625,7 +620,7 @@ def TTTB(ys, pflag, method='RW', **kwargs):
 
 if __name__ == '__main__':
     
-    df_ys = pd.read_csv('./Data/ma_i_1h.csv')
+    df_ys = pd.read_csv('./Data/m_i_1d.csv')
     df_ys.datetime = df_ys.datetime.apply(pd.to_datetime)
     df_ys.datetime = df_ys.datetime.apply(lambda x: str(x)) 
     df_ys.set_index('datetime',inplace=True)
@@ -633,9 +628,7 @@ if __name__ == '__main__':
     str_Close = [i for i in ls_cols if i[-6:] == '.close'][0]
     ys = df_ys.loc[:, str_Close]
     
-    # dict_Patterns, Peaks, Bottoms = HS(ys, pflag=1, method='RW', w=1, iteration=0)
-    # HS_plotting(ys, Peaks, Bottoms, dict_Patterns, figname='m_i_1d', savefig=True)
+    dict_Patterns, Peaks, Bottoms = HS(ys, pflag=1, method='RW', w=1, iteration=0)
+    HS_plotting(ys, Peaks, Bottoms, dict_Patterns, figname='m_i_1d', savefig=True)
 
     dict_Patterns, Peaks, Bottoms = TTTB(ys, pflag=1, method='RW', w=1, iteration=0)
-    HS_plotting(ys, Peaks, Bottoms, dict_Patterns, figname='m_i_1d', savefig=False)
-
